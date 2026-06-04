@@ -63,7 +63,36 @@ func main() {
 		return
 	}
 
-	playGame(dict, start, end, maxChanges)
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		playGame(dict, start, end, maxChanges, shortest, reader)
+		fmt.Print("\nplay again with new words? (y/n): ")
+		ans, _ := reader.ReadString('\n')
+		if normalize(ans) != "y" {
+			fmt.Println("goodbye!")
+			return
+		}
+		// pick new words for next round
+		newStart, newEnd, newDifficulty, newMax, ok := gatherInputs("", "", *difficultyFlag, *maxFlag)
+		if !ok {
+			return
+		}
+		if err := validateInputs(dict, newStart, newEnd); err != nil {
+			fmt.Println("input error:", err)
+			return
+		}
+		shortest, found = shortestPathBFS(dict, newStart, newEnd, 0)
+		if !found {
+			fmt.Printf("no path found from %q to %q with current dictionary\n", newStart, newEnd)
+			return
+		}
+		newMax, err = resolveMaxChanges(newDifficulty, newMax, len(shortest)-1)
+		if err != nil {
+			fmt.Println("input error:", err)
+			return
+		}
+		start, end, maxChanges = newStart, newEnd, newMax
+	}
 }
 
 func gatherInputs(start, end, difficulty string, maxChanges int) (string, string, string, int, bool) {
@@ -149,24 +178,25 @@ func resolveMaxChanges(difficulty string, requestedMax, shortestChanges int) (in
 	}
 }
 
-func playGame(dict Dictionary, start, end string, maxChanges int) {
-	fmt.Println("doublet challenge")
+// playGame runs one round.
+func playGame(dict Dictionary, start, end string, maxChanges int, solution []string, reader *bufio.Reader) {
+	fmt.Println("\ndoublet challenge")
 	fmt.Printf("turn %q into %q in at most %d changes\n", start, end, maxChanges)
 	fmt.Println("rules: change exactly one letter each move and keep valid words")
-	fmt.Println("commands: /quit")
+	fmt.Println("commands: /restart, /quit")
 
-	reader := bufio.NewReader(os.Stdin)
 	current := start
 	moves := 0
 
 	for {
 		if current == end {
-			fmt.Printf("you solved it in %d changes\n", moves)
+			fmt.Printf("\ncongratulations! solved in %d/%d changes\n", moves, maxChanges)
 			return
 		}
 		if moves >= maxChanges {
-			fmt.Printf("limit reached (%d changes).\n", maxChanges)
-			fmt.Println("challenge failed. try again!")
+			fmt.Printf("\nno moves left — the target was %q. better luck next time!\n", end)
+			fmt.Println("one valid path was:")
+			printPath(solution)
 			return
 		}
 
@@ -178,11 +208,17 @@ func playGame(dict Dictionary, start, end string, maxChanges int) {
 
 		switch next {
 		case "":
-			fmt.Println("enter a word or command")
+			fmt.Println("enter a word or /restart to start over, /quit to exit")
+			continue
+		case "/restart":
+			fmt.Println("restarting round...")
+			current = start
+			moves = 0
+			fmt.Printf("turn %q into %q in at most %d changes\n", start, end, maxChanges)
 			continue
 		case "/quit":
-			fmt.Println("game ended")
-			return
+			fmt.Println("goodbye!")
+			os.Exit(0)
 		}
 
 		if len(next) != len(current) {
