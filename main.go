@@ -154,10 +154,10 @@ func validateInputs(dict Dictionary, start, end string) error {
 		return fmt.Errorf("start and target must have same length")
 	}
 	if !isWord(dict, start) {
-		return fmt.Errorf("start word %q is not in dictionary", start)
+		return fmt.Errorf("ERROR: start word %q is NOT in dictionary", start)
 	}
 	if !isWord(dict, end) {
-		return fmt.Errorf("target word %q is not in dictionary", end)
+		return fmt.Errorf("ERROR: target word %q is NOT in dictionary", end)
 	}
 	return nil
 }
@@ -312,11 +312,11 @@ func playGame(dict Dictionary, start, end string, maxChanges int, solution []str
 			continue
 		}
 		if !isWord(dict, next) {
-			fmt.Println("not in dictionary")
+			fmt.Printf("ERROR: %q is NOT in dictionary\n", next)
 			continue
 		}
 		if !oneLetterApart(current, next) {
-			fmt.Println("must change exactly one letter")
+			fmt.Println("ERROR: You must change exactly, only one letter")
 			continue
 		}
 
