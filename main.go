@@ -4,10 +4,14 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
+
+var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func main() {
 	dictPath := flag.String("dict", "", "path to newline-separated dictionary (overrides -lexicon)")
@@ -23,6 +27,18 @@ func main() {
 	if err != nil {
 		fmt.Printf("failed to load dictionary: %v\n", err)
 		os.Exit(1)
+	}
+
+	// Suggest doublets at three difficulty levels if user hasn't specified start/end
+	if *startFlag == "" && *endFlag == "" {
+		fmt.Println("\n=== WELCOME TO DOUBLET ===")
+		fmt.Println("Here are some doublets to try:")
+		easy, medium, hard := getSuggestedDoublets()
+		fmt.Printf("          %-10s %s\n", "start", "target")
+		fmt.Printf("          %-10s %s\n", "-----", "------")
+		fmt.Printf("  Easy:   %-10q → %q\n", easy[0], easy[1])
+		fmt.Printf("  Medium: %-10q → %q\n", medium[0], medium[1])
+		fmt.Printf("  Hard:   %-10q → %q\n\n", hard[0], hard[1])
 	}
 
 	start, end, difficulty, requestedMax, ok := gatherInputs(*startFlag, *endFlag, *difficultyFlag, *maxFlag)
@@ -176,6 +192,76 @@ func resolveMaxChanges(difficulty string, requestedMax, shortestChanges int) (in
 	default:
 		return 0, fmt.Errorf("unsupported difficulty: %s", difficulty)
 	}
+}
+
+var mediumDoublets = [][2]string{
+	{"cold", "warm"},
+	{"hand", "foot"},
+	{"head", "tail"},
+	{"more", "less"},
+	{"dark", "dawn"},
+	{"four", "five"},
+	{"hate", "love"},
+	{"fire", "hide"},
+	{"ring", "song"},
+	{"swim", "flew"},
+	{"wine", "beer"},
+	{"work", "play"},
+	{"left", "mine"},
+	{"hunt", "fish"},
+	{"word", "game"},
+}
+
+var hardDoublets = [][2]string{
+	{"stone", "money"},
+	{"witch", "bride"},
+	{"black", "white"},
+	{"blood", "sweat"},
+	{"bread", "toast"},
+	{"floor", "glass"},
+	{"night", "light"},
+	{"grass", "green"},
+	{"chain", "break"},
+	{"sleep", "dream"},
+}
+
+var easyDoublets = [][2]string{
+	{"cat", "dog"},
+	{"hit", "hot"},
+	{"bat", "cat"},
+	{"rat", "bat"},
+	{"hat", "cat"},
+	{"bit", "bat"},
+	{"pit", "pat"},
+	{"pat", "cat"},
+	{"sit", "sat"},
+	{"sat", "cat"},
+	{"mat", "hat"},
+	{"fat", "cat"},
+	{"bed", "bad"},
+	{"red", "bed"},
+	{"fed", "bed"},
+	{"led", "bed"},
+	{"men", "pen"},
+	{"hen", "pen"},
+	{"ten", "pen"},
+	{"den", "pen"},
+	{"big", "bag"},
+	{"dig", "dog"},
+	{"fog", "dog"},
+	{"log", "dog"},
+	{"cot", "cat"},
+	{"cut", "cat"},
+	{"cup", "cap"},
+	{"cap", "cat"},
+	{"car", "cat"},
+	{"can", "cat"},
+}
+
+func getSuggestedDoublets() ([2]string, [2]string, [2]string) {
+	return easyDoublets[rng.Intn(len(easyDoublets))],
+		mediumDoublets[rng.Intn(len(mediumDoublets))],
+		hardDoublets[rng.Intn(len(hardDoublets))]
 }
 
 // playGame runs one round.
