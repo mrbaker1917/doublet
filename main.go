@@ -66,10 +66,10 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		playGame(dict, start, end, maxChanges, shortest, reader)
-		fmt.Print("\nplay again with new words? (y/n): ")
+		fmt.Print("\nPlay again with new words? (y/n): ")
 		ans, _ := reader.ReadString('\n')
 		if normalize(ans) != "y" {
-			fmt.Println("goodbye!")
+			fmt.Println("Goodbye!")
 			return
 		}
 		// pick new words for next round
@@ -180,22 +180,22 @@ func resolveMaxChanges(difficulty string, requestedMax, shortestChanges int) (in
 
 // playGame runs one round.
 func playGame(dict Dictionary, start, end string, maxChanges int, solution []string, reader *bufio.Reader) {
-	fmt.Println("\ndoublet challenge")
+	fmt.Println("\nHere is your Doublet Challenge:")
 	fmt.Printf("turn %q into %q in at most %d changes\n", start, end, maxChanges)
 	fmt.Println("rules: change exactly one letter each move and keep valid words")
-	fmt.Println("commands: /restart, /quit")
+	fmt.Println("commands: `/restart`, `/quit`")
 
 	current := start
 	moves := 0
 
 	for {
 		if current == end {
-			fmt.Printf("\ncongratulations! solved in %d/%d changes\n", moves, maxChanges)
+			fmt.Printf("\nCONGRATULATIONS! You solved in %d/%d changes!\n", moves, maxChanges)
 			return
 		}
 		if moves >= maxChanges {
-			fmt.Printf("\nno moves left — the target was %q. better luck next time!\n", end)
-			fmt.Println("one valid path was:")
+			fmt.Printf("\nNO MOVES LEFT — the target was %q. better luck next time!\n", end)
+			fmt.Println("ONE VALID PATH WAS:")
 			printPath(solution)
 			return
 		}
@@ -208,16 +208,16 @@ func playGame(dict Dictionary, start, end string, maxChanges int, solution []str
 
 		switch next {
 		case "":
-			fmt.Println("enter a word or /restart to start over, /quit to exit")
+			fmt.Println("Enter a word or type `/restart` to start over, `/quit` to exit")
 			continue
 		case "/restart":
-			fmt.Println("restarting round...")
+			fmt.Println("Restarting round...")
 			current = start
 			moves = 0
 			fmt.Printf("turn %q into %q in at most %d changes\n", start, end, maxChanges)
 			continue
 		case "/quit":
-			fmt.Println("goodbye!")
+			fmt.Println("Goodbye!")
 			os.Exit(0)
 		}
 
