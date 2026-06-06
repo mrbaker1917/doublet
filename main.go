@@ -84,11 +84,21 @@ func main() {
 		playGame(dict, start, end, maxChanges, shortest, reader)
 		fmt.Print("\nPlay again with new words? (y/n): ")
 		ans, _ := reader.ReadString('\n')
-		if normalize(ans) != "y" {
-			fmt.Println("Goodbye!")
+		if strings.ToLower(strings.TrimSpace(ans)) != "y" {
+			fmt.Println("Thanks for playing Doublet! Goodbye!")
 			return
 		}
 		// pick new words for next round
+		if *startFlag == "" && *endFlag == "" {
+			fmt.Println("\n=== WELCOME TO DOUBLET ===")
+			fmt.Println("Here are some doublets to try:")
+			easy, medium, hard := getSuggestedDoublets()
+			fmt.Printf("          %-10s %s\n", "start", "target")
+			fmt.Printf("          %-10s %s\n", "-----", "------")
+			fmt.Printf("  Easy:   %-10q → %q\n", easy[0], easy[1])
+			fmt.Printf("  Medium: %-10q → %q\n", medium[0], medium[1])
+			fmt.Printf("  Hard:   %-10q → %q\n\n", hard[0], hard[1])
+		}
 		newStart, newEnd, newDifficulty, newMax, ok := gatherInputs("", "", *difficultyFlag, *maxFlag)
 		if !ok {
 			return
@@ -303,7 +313,7 @@ func playGame(dict Dictionary, start, end string, maxChanges int, solution []str
 			fmt.Printf("turn %q into %q in at most %d changes\n", start, end, maxChanges)
 			continue
 		case "/quit":
-			fmt.Println("Goodbye!")
+			fmt.Println("Thanks for playing Doublet! Goodbye!")
 			os.Exit(0)
 		}
 
