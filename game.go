@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -12,7 +13,8 @@ import (
 type Dictionary map[string]struct{}
 
 func loadDictionary(path string) (Dictionary, error) {
-	f, err := os.Open(path)
+
+	f, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return nil, err
 	}
