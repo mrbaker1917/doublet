@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,9 +19,12 @@ func LoadDictionary(path string) (Dictionary, error) {
 		return nil, err
 	}
 	defer f.Close()
+	return LoadDictionaryFromReader(f)
+}
 
+func LoadDictionaryFromReader(r io.Reader) (Dictionary, error) {
 	dict := make(Dictionary)
-	scanner := bufio.NewScanner(f)
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		w := Normalize(scanner.Text())
 		if w == "" {

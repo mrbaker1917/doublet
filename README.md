@@ -1,6 +1,6 @@
 ![Status of tests on this REPO](https://github.com/mrbaker1917/doublet/actions/workflows/ci.yml/badge.svg)
 
-# Doublet (Word Ladder) in Go
+# Doublet (in Go)
 
 A CLI word game where you transform one word into another by changing one letter at a time.
 Each intermediate step must also be a valid dictionary word.
@@ -23,6 +23,25 @@ You can provide flags instead of prompts:
 ```bash
 go run ./cmd/cli -start cat -end dog -difficulty hard -solve
 ```
+
+## Web API
+
+Start the HTTP server (run from the project root so dictionary files resolve):
+
+```bash
+go run ./cmd/web
+```
+
+Then visit `http://localhost:8080` to play in the browser.
+
+The UI supports suggested doublets, custom start/target words, difficulty selection, move history, and win/lose feedback.
+
+API endpoints:
+
+- `POST /api/games` — start a game (`start`, `end`, `difficulty`, optional `max`)
+- `GET /api/games/{id}` — fetch game state
+- `POST /api/games/{id}/move` — submit a move (`word`)
+- `GET /api/suggestions` — random easy/medium/hard doublet pairs
 
 ## Dictionary Options
 
