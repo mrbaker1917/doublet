@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doublet</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1>Doublet</h1>
+      <p class="tagline">Change one letter at a time. Every step must be a real word.</p>
+    </header>
+
+    <section id="start-screen" class="panel">
+      <h2>New challenge</h2>
+
+      <div id="suggestions" class="suggestions" hidden>
+        <p class="hint">Try one of these:</p>
+        <div class="suggestion-row">
+          <button type="button" class="chip" data-level="easy"></button>
+          <button type="button" class="chip" data-level="medium"></button>
+          <button type="button" class="chip" data-level="hard"></button>
+        </div>
+      </div>
+
+      <form id="start-form" class="form">
+        <label>
+          Start word
+          <input id="start-input" name="start" type="text" autocomplete="off" spellcheck="false" required>
+        </label>
+        <label>
+          Target word
+          <input id="end-input" name="end" type="text" autocomplete="off" spellcheck="false" required>
+        </label>
+        <label>
+          Difficulty
+          <select id="difficulty-input" name="difficulty">
+            <option value="easy">Easy (+2 moves)</option>
+            <option value="medium" selected>Medium (+1 move)</option>
+            <option value="hard">Hard (shortest only)</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
+        <label id="max-label" class="max-label" hidden>
+          Max changes
+          <input id="max-input" name="max" type="number" min="1" value="3">
+        </label>
+        <button type="submit" class="btn primary">Start game</button>
+      </form>
+      <p id="start-error" class="error" role="alert" hidden></p>
+    </section>
+
+    <section id="game-screen" class="panel" hidden>
+      <div class="status-bar">
+        <div class="status-item">
+          <span class="label">Current</span>
+          <span id="current-word" class="word current"></span>
+        </div>
+        <div class="status-item">
+          <span class="label">Target</span>
+          <span id="target-word" class="word target"></span>
+        </div>
+        <div class="status-item">
+          <span class="label">Moves left</span>
+          <span id="moves-left" class="count"></span>
+        </div>
+      </div>
+
+      <div class="history-wrap">
+        <h3>Path so far</h3>
+        <p id="history" class="history"></p>
+      </div>
+
+      <form id="move-form" class="form inline">
+        <label>
+          Next word
+          <input id="move-input" name="word" type="text" autocomplete="off" spellcheck="false" required>
+        </label>
+        <button type="submit" class="btn primary">Submit</button>
+      </form>
+      <p id="move-message" class="message" role="status" hidden></p>
+      <p id="game-result" class="result" role="status" hidden></p>
+
+      <button id="new-game-btn" type="button" class="btn secondary" hidden>New game</button>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
