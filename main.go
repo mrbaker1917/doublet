@@ -2,16 +2,19 @@ package main
 
 import (
 	"bufio"
+	"crypto/rand"
 	"flag"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
-var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+func randIntn(n int) int {
+	val, _ := rand.Int(rand.Reader, big.NewInt(int64(n)))
+	return int(val.Int64())
+}
 
 func main() {
 	dictPath := flag.String("dict", "", "path to newline-separated dictionary (overrides -lexicon)")
@@ -269,9 +272,9 @@ var easyDoublets = [][2]string{
 }
 
 func getSuggestedDoublets() ([2]string, [2]string, [2]string) {
-	return easyDoublets[rng.Intn(len(easyDoublets))],
-		mediumDoublets[rng.Intn(len(mediumDoublets))],
-		hardDoublets[rng.Intn(len(hardDoublets))]
+	return easyDoublets[randIntn(len(easyDoublets))],
+		mediumDoublets[randIntn(len(mediumDoublets))],
+		hardDoublets[randIntn(len(hardDoublets))]
 }
 
 // playGame runs one round.
