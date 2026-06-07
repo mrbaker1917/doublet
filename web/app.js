@@ -9,6 +9,8 @@ const suggestionsEl = document.getElementById("suggestions");
 const difficultyInput = document.getElementById("difficulty-input");
 const maxLabel = document.getElementById("max-label");
 const newGameBtn = document.getElementById("new-game-btn");
+const solutionWrap = document.getElementById("solution-wrap");
+const solutionPath = document.getElementById("solution-path");
 
 let activeGame = null;
 
@@ -75,6 +77,8 @@ function showStartScreen() {
   showError(startError, "");
   showError(moveMessage, "");
   showError(gameResult, "");
+  solutionWrap.hidden = true;
+  solutionPath.textContent = "";
   moveForm.reset();
   newGameBtn.hidden = true;
   document.getElementById("move-input").disabled = false;
@@ -88,11 +92,14 @@ function showGameScreen(game) {
   showError(startError, "");
   showError(moveMessage, "");
   showError(gameResult, "");
+  solutionWrap.hidden = true;
+  solutionPath.textContent = "";
   updateGameView(game);
   document.getElementById("move-input").focus();
 }
 
-function finishGame({ won, lost }) {
+function finishGame(result) {
+  const { won, lost } = result;
   document.getElementById("move-input").disabled = true;
   moveForm.querySelector("button").disabled = true;
   newGameBtn.hidden = false;
@@ -108,6 +115,10 @@ function finishGame({ won, lost }) {
     gameResult.hidden = false;
     gameResult.className = "result lost";
     gameResult.textContent = "No moves left. Better luck next time.";
+    if (result.solutionPath?.length) {
+      solutionWrap.hidden = false;
+      solutionPath.textContent = formatHistory(result.solutionPath);
+    }
   }
 }
 

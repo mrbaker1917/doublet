@@ -43,6 +43,19 @@ API endpoints:
 - `POST /api/games/{id}/move` — submit a move (`word`)
 - `GET /api/suggestions` — random easy/medium/hard doublet pairs
 
+## Deploy to Fly.io
+
+Requires a [Fly.io](https://fly.io) account and the [Fly CLI](https://fly.io/docs/hands-on/install-flyctl/).
+
+```bash
+fly auth login
+fly launch    # first time only; pick a unique app name if doublet is taken
+fly deploy
+fly open
+```
+
+The Docker image builds `cmd/web` and copies `web/`, `words.txt`, and `words-large.txt` into the container.
+
 ## Dictionary Options
 
 Use a built-in preset:
