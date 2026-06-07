@@ -2,19 +2,13 @@ package main
 
 import (
 	"bufio"
-	"crypto/rand"
+	"doublet/internal/game"
 	"flag"
 	"fmt"
-	"math/big"
 	"os"
 	"strconv"
 	"strings"
 )
-
-func randIntn(n int) int {
-	val, _ := rand.Int(rand.Reader, big.NewInt(int64(n)))
-	return int(val.Int64())
-}
 
 func main() {
 	dictPath := flag.String("dict", "", "path to newline-separated dictionary (overrides -lexicon)")
@@ -26,7 +20,7 @@ func main() {
 	showOnly := flag.Bool("solve", false, "print shortest solution and exit")
 	flag.Parse()
 
-	dict, err := loadDictionaryForFlags(*dictPath, *lexicon)
+	dict, err := game.LoadDictionaryForFlags(*dictPath, *lexicon)
 	if err != nil {
 		fmt.Printf("failed to load dictionary: %v\n", err)
 		os.Exit(1)
@@ -36,7 +30,7 @@ func main() {
 	if *startFlag == "" && *endFlag == "" {
 		fmt.Println("\n=== WELCOME TO DOUBLET ===")
 		fmt.Println("Here are some doublets to try:")
-		easy, medium, hard := getSuggestedDoublets()
+		easy, medium, hard := game.GetSuggestedDoublets()
 		fmt.Printf("          %-10s %s\n", "start", "target")
 		fmt.Printf("          %-10s %s\n", "-----", "------")
 		fmt.Printf("  Easy:   %-10q → %q\n", easy[0], easy[1])
@@ -49,23 +43,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := validateInputs(dict, start, end); err != nil {
+	if err := game.ValidateInputs(dict, start, end); err != nil {
 		fmt.Println("input error:", err)
 		os.Exit(1)
 	}
-	if err := validateDifficulty(difficulty); err != nil {
+	if err := game.ValidateDifficulty(difficulty); err != nil {
 		fmt.Println("input error:", err)
 		os.Exit(1)
 	}
 
-	shortest, found := shortestPathBFS(dict, start, end, 0)
+	shortest, found := game.ShortestPathBFS(dict, start, end, 0)
 	if !found {
 		fmt.Printf("no path found from %q to %q with current dictionary\n", start, end)
 		os.Exit(1)
 	}
 
 	shortestChanges := len(shortest) - 1
-	maxChanges, err := resolveMaxChanges(difficulty, requestedMax, shortestChanges)
+	maxChanges, err := game.ResolveMaxChanges(difficulty, requestedMax, shortestChanges)
 	if err != nil {
 		fmt.Println("input error:", err)
 		os.Exit(1)
@@ -95,7 +89,7 @@ func main() {
 		if *startFlag == "" && *endFlag == "" {
 			fmt.Println("\n=== WELCOME TO DOUBLET ===")
 			fmt.Println("Here are some doublets to try:")
-			easy, medium, hard := getSuggestedDoublets()
+			easy, medium, hard := game.GetSuggestedDoublets()
 			fmt.Printf("          %-10s %s\n", "start", "target")
 			fmt.Printf("          %-10s %s\n", "-----", "------")
 			fmt.Printf("  Easy:   %-10q → %q\n", easy[0], easy[1])
@@ -106,16 +100,16 @@ func main() {
 		if !ok {
 			return
 		}
-		if err := validateInputs(dict, newStart, newEnd); err != nil {
+		if err := game.ValidateInputs(dict, newStart, newEnd); err != nil {
 			fmt.Println("input error:", err)
 			return
 		}
-		shortest, found = shortestPathBFS(dict, newStart, newEnd, 0)
+		shortest, found = game.ShortestPathBFS(dict, newStart, newEnd, 0)
 		if !found {
 			fmt.Printf("no path found from %q to %q with current dictionary\n", newStart, newEnd)
 			return
 		}
-		newMax, err = resolveMaxChanges(newDifficulty, newMax, len(shortest)-1)
+		newMax, err = game.ResolveMaxChanges(newDifficulty, newMax, len(shortest)-1)
 		if err != nil {
 			fmt.Println("input error:", err)
 			return
@@ -125,25 +119,25 @@ func main() {
 }
 
 func gatherInputs(start, end, difficulty string, maxChanges int) (string, string, string, int, bool) {
-	start = normalize(start)
-	end = normalize(end)
-	difficulty = normalizeDifficulty(difficulty)
+	start = game.Normalize(start)
+	end = game.Normalize(end)
+	difficulty = game.NormalizeDifficulty(difficulty)
 
 	reader := bufio.NewReader(os.Stdin)
 	if start == "" {
 		fmt.Print("start word: ")
 		s, _ := reader.ReadString('\n')
-		start = normalize(s)
+		start = game.Normalize(s)
 	}
 	if end == "" {
 		fmt.Print("target word: ")
 		s, _ := reader.ReadString('\n')
-		end = normalize(s)
+		end = game.Normalize(s)
 	}
 	if difficulty == "" {
 		fmt.Print("difficulty (easy/medium/hard/custom): ")
 		s, _ := reader.ReadString('\n')
-		difficulty = normalizeDifficulty(s)
+		difficulty = game.NormalizeDifficulty(s)
 	}
 	if difficulty == "custom" && maxChanges <= 0 {
 		fmt.Print("max changes: ")
@@ -159,126 +153,8 @@ func gatherInputs(start, end, difficulty string, maxChanges int) (string, string
 	return start, end, difficulty, maxChanges, true
 }
 
-func validateInputs(dict Dictionary, start, end string) error {
-	if start == "" || end == "" {
-		return fmt.Errorf("start and target words are required")
-	}
-	if len(start) != len(end) {
-		return fmt.Errorf("start and target must have same length")
-	}
-	if !isWord(dict, start) {
-		return fmt.Errorf("ERROR: start word %q is NOT in dictionary", start)
-	}
-	if !isWord(dict, end) {
-		return fmt.Errorf("ERROR: target word %q is NOT in dictionary", end)
-	}
-	return nil
-}
-
-func normalizeDifficulty(s string) string {
-	return strings.ToLower(strings.TrimSpace(s))
-}
-
-func validateDifficulty(difficulty string) error {
-	switch difficulty {
-	case "easy", "medium", "hard", "custom":
-		return nil
-	default:
-		return fmt.Errorf("difficulty must be one of: easy, medium, hard, custom")
-	}
-}
-
-func resolveMaxChanges(difficulty string, requestedMax, shortestChanges int) (int, error) {
-	if requestedMax > 0 {
-		return requestedMax, nil
-	}
-
-	switch difficulty {
-	case "easy":
-		return shortestChanges + 2, nil
-	case "medium":
-		return shortestChanges + 1, nil
-	case "hard":
-		return shortestChanges, nil
-	case "custom":
-		return 0, fmt.Errorf("custom difficulty requires -max to be set")
-	default:
-		return 0, fmt.Errorf("unsupported difficulty: %s", difficulty)
-	}
-}
-
-var mediumDoublets = [][2]string{
-	{"cold", "warm"},
-	{"hand", "foot"},
-	{"head", "tail"},
-	{"more", "less"},
-	{"dark", "dawn"},
-	{"four", "five"},
-	{"hate", "love"},
-	{"fire", "hide"},
-	{"ring", "song"},
-	{"swim", "flew"},
-	{"wine", "beer"},
-	{"work", "play"},
-	{"left", "mine"},
-	{"hunt", "fish"},
-	{"word", "game"},
-}
-
-var hardDoublets = [][2]string{
-	{"stone", "money"},
-	{"witch", "bride"},
-	{"black", "white"},
-	{"blood", "sweat"},
-	{"bread", "toast"},
-	{"floor", "glass"},
-	{"night", "light"},
-	{"grass", "green"},
-	{"chain", "break"},
-	{"sleep", "dream"},
-}
-
-var easyDoublets = [][2]string{
-	{"cat", "dog"},
-	{"hit", "hot"},
-	{"bat", "cat"},
-	{"rat", "bat"},
-	{"hat", "cat"},
-	{"bit", "bat"},
-	{"pit", "pat"},
-	{"pat", "cat"},
-	{"sit", "sat"},
-	{"sat", "cat"},
-	{"mat", "hat"},
-	{"fat", "cat"},
-	{"bed", "bad"},
-	{"red", "bed"},
-	{"fed", "bed"},
-	{"led", "bed"},
-	{"men", "pen"},
-	{"hen", "pen"},
-	{"ten", "pen"},
-	{"den", "pen"},
-	{"big", "bag"},
-	{"dig", "dog"},
-	{"fog", "dog"},
-	{"log", "dog"},
-	{"cot", "cat"},
-	{"cut", "cat"},
-	{"cup", "cap"},
-	{"cap", "cat"},
-	{"car", "cat"},
-	{"can", "cat"},
-}
-
-func getSuggestedDoublets() ([2]string, [2]string, [2]string) {
-	return easyDoublets[randIntn(len(easyDoublets))],
-		mediumDoublets[randIntn(len(mediumDoublets))],
-		hardDoublets[randIntn(len(hardDoublets))]
-}
-
 // playGame runs one round.
-func playGame(dict Dictionary, start, end string, maxChanges int, solution []string, reader *bufio.Reader) {
+func playGame(dict game.Dictionary, start, end string, maxChanges int, solution []string, reader *bufio.Reader) {
 	fmt.Println("\nHere is your Doublet Challenge:")
 	fmt.Printf("turn %q into %q in at most %d changes\n", start, end, maxChanges)
 	fmt.Println("rules: change exactly one letter each move and keep valid words")
@@ -303,7 +179,7 @@ func playGame(dict Dictionary, start, end string, maxChanges int, solution []str
 		fmt.Printf("current: %s | target: %s | remaining changes: %d\n", current, strings.ToUpper(end), remaining)
 		fmt.Print("next word: ")
 		line, _ := reader.ReadString('\n')
-		next := normalize(line)
+		next := game.Normalize(line)
 
 		switch next {
 		case "":
@@ -324,11 +200,11 @@ func playGame(dict Dictionary, start, end string, maxChanges int, solution []str
 			fmt.Printf("word must be %d letters\n", len(current))
 			continue
 		}
-		if !isWord(dict, next) {
+		if !game.IsWord(dict, next) {
 			fmt.Printf("ERROR: %q is NOT in dictionary\n", next)
 			continue
 		}
-		if !oneLetterApart(current, next) {
+		if !game.OneLetterApart(current, next) {
 			fmt.Println("ERROR: You must change exactly, only one letter")
 			continue
 		}
@@ -336,4 +212,12 @@ func playGame(dict Dictionary, start, end string, maxChanges int, solution []str
 		current = next
 		moves++
 	}
+}
+
+func printPath(path []string) {
+	if len(path) == 0 {
+		return
+	}
+	fmt.Println(strings.Join(path, " -> "))
+	fmt.Printf("changes used: %d\n", len(path)-1)
 }
