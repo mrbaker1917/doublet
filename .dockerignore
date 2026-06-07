@@ -1,0 +1,10 @@
+.git
+.github
+*.exe
+*.test
+*.out
+.env
+README.md
+Dockerfile
+.dockerignore
+fly.toml

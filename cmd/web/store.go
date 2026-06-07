@@ -19,15 +19,16 @@ var (
 )
 
 type Game struct {
-	ID         string   `json:"id"`
-	Start      string   `json:"start"`
-	End        string   `json:"end"`
-	Current    string   `json:"current"`
-	Difficulty string   `json:"difficulty"`
-	MaxChanges int      `json:"maxChanges"`
-	MovesUsed  int      `json:"movesUsed"`
-	History    []string `json:"history"`
-	Status     string   `json:"status"`
+	ID           string   `json:"id"`
+	Start        string   `json:"start"`
+	End          string   `json:"end"`
+	Current      string   `json:"current"`
+	Difficulty   string   `json:"difficulty"`
+	MaxChanges   int      `json:"maxChanges"`
+	MovesUsed    int      `json:"movesUsed"`
+	History      []string `json:"history"`
+	Status       string   `json:"status"`
+	SolutionPath []string `json:"-"`
 }
 
 type gameStore struct {
@@ -46,15 +47,16 @@ func (s *gameStore) create(g *Game) (*Game, error) {
 	}
 
 	stored := &Game{
-		ID:         id,
-		Start:      g.Start,
-		End:        g.End,
-		Current:    g.Start,
-		Difficulty: g.Difficulty,
-		MaxChanges: g.MaxChanges,
-		MovesUsed:  0,
-		History:    []string{g.Start},
-		Status:     gameStatusPlaying,
+		ID:           id,
+		Start:        g.Start,
+		End:          g.End,
+		Current:      g.Start,
+		Difficulty:   g.Difficulty,
+		MaxChanges:   g.MaxChanges,
+		MovesUsed:    0,
+		History:      []string{g.Start},
+		Status:       gameStatusPlaying,
+		SolutionPath: append([]string(nil), g.SolutionPath...),
 	}
 
 	s.mu.Lock()

@@ -23,13 +23,14 @@ type moveRequest struct {
 }
 
 type moveResponse struct {
-	Valid     bool     `json:"valid"`
-	Current   string   `json:"current,omitempty"`
-	MovesUsed int      `json:"movesUsed,omitempty"`
-	History   []string `json:"history,omitempty"`
-	Won       bool     `json:"won"`
-	Lost      bool     `json:"lost"`
-	Message   string   `json:"message"`
+	Valid        bool     `json:"valid"`
+	Current      string   `json:"current,omitempty"`
+	MovesUsed    int      `json:"movesUsed,omitempty"`
+	History      []string `json:"history,omitempty"`
+	Won          bool     `json:"won"`
+	Lost         bool     `json:"lost"`
+	Message      string   `json:"message"`
+	SolutionPath []string `json:"solutionPath,omitempty"`
 }
 
 type suggestionsResponse struct {
@@ -88,10 +89,11 @@ func (s *server) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	created, err := s.store.create(&Game{
-		Start:      start,
-		End:        end,
-		Difficulty: difficulty,
-		MaxChanges: maxChanges,
+		Start:        start,
+		End:          end,
+		Difficulty:   difficulty,
+		MaxChanges:   maxChanges,
+		SolutionPath: shortest,
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to create game")
@@ -179,14 +181,18 @@ func (s *server) handleMove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, moveResponse{
+	resp := moveResponse{
 		Valid:     true,
 		Current:   updated.Current,
 		MovesUsed: updated.MovesUsed,
 		History:   updated.History,
 		Won:       updated.Status == gameStatusWon,
 		Lost:      updated.Status == gameStatusLost,
-	})
+	}
+	if updated.Status == gameStatusLost {
+		resp.SolutionPath = updated.SolutionPath
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func (s *server) handleGetGame(w http.ResponseWriter, r *http.Request) {
