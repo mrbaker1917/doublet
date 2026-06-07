@@ -1,3 +1,8 @@
+# fly.toml app configuration file generated for doublet on 2026-06-07T23:00:09Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
 app = 'doublet'
 primary_region = 'iad'
 
@@ -15,3 +20,4 @@ primary_region = 'iad'
   memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 256
