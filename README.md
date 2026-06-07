@@ -15,13 +15,13 @@ Each intermediate step must also be a valid dictionary word.
 ## Run
 
 ```bash
-go run .
+go run ./cmd/cli
 ```
 
 You can provide flags instead of prompts:
 
 ```bash
-go run . -start cat -end dog -difficulty hard -solve
+go run ./cmd/cli -start cat -end dog -difficulty hard -solve
 ```
 
 ## Dictionary Options
@@ -34,7 +34,7 @@ Use a built-in preset:
 Use your own dictionary file:
 
 ```bash
-go run . -dict mywords.txt -start cold -end warm -difficulty medium -solve
+go run ./cmd/cli -dict mywords.txt -start cold -end warm -difficulty medium -solve
 ```
 
 When `-dict` is provided, it overrides `-lexicon`.
@@ -49,8 +49,8 @@ When `-dict` is provided, it overrides `-lexicon`.
 Examples:
 
 ```bash
-go run . -lexicon small -start cat -end dog -difficulty easy -solve
-go run . -lexicon small -start cat -end dog -difficulty custom -max 3 -solve
+go run ./cmd/cli -lexicon small -start cat -end dog -difficulty easy -solve
+go run ./cmd/cli -lexicon small -start cat -end dog -difficulty custom -max 3 -solve
 ```
 
 ## Interactive Commands
