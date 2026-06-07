@@ -1,3 +1,5 @@
+![Status of tests on this REPO](https://github.com/mrbaker1917/doublet/actions/workflows/ci.yml/badge.svg)
+
 # Doublet (Word Ladder) in Go
 
 A CLI word game where you transform one word into another by changing one letter at a time.
