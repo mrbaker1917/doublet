@@ -297,7 +297,7 @@ func playGame(dict Dictionary, start, end string, maxChanges int, solution []str
 		}
 
 		remaining := maxChanges - moves
-		fmt.Printf("current: %s | remaining changes: %d\n", current, remaining)
+		fmt.Printf("current: %s | target: %s | remaining changes: %d\n", current, strings.ToUpper(end), remaining)
 		fmt.Print("next word: ")
 		line, _ := reader.ReadString('\n')
 		next := normalize(line)
