@@ -83,6 +83,7 @@ function showStartScreen() {
   newGameBtn.hidden = true;
   document.getElementById("move-input").disabled = false;
   moveForm.querySelector("button").disabled = false;
+  loadSuggestions();
 }
 
 function showGameScreen(game) {
