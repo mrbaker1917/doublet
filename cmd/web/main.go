@@ -16,6 +16,13 @@ func main() {
 	dictPath := flag.String("dict", "", "path to newline-separated dictionary (overrides -lexicon)")
 	lexicon := flag.String("lexicon", "large", "dictionary preset: small or large")
 	port := flag.String("port", "", "listen port (overrides PORT env var)")
+	maxGames := flag.Int("max-games", defaultMaxGames, "maximum in-memory games before evicting least recently used")
+	gameTTL := flag.Duration("game-ttl", defaultGameTTL, "how long inactive games are kept (e.g. 24h, 30m)")
+	createRateLimit := flag.Int("create-rate-limit", defaultCreateRateLimit, "max POST /api/games requests per IP per rate window")
+	createRateWindow := flag.Duration("create-rate-window", defaultCreateRateWindow, "rate limit window for game creation (e.g. 1m)")
+	maxConcurrentBFS := flag.Int("max-concurrent-bfs", defaultMaxConcurrentBFS, "max simultaneous BFS path searches")
+	bfsWait := flag.Duration("bfs-wait", defaultBFSWait, "how long to wait for a BFS slot before returning busy")
+	pathCacheSize := flag.Int("path-cache-size", defaultPathCacheSize, "cached start/end shortest paths")
 	flag.Parse()
 
 	dict, err := game.LoadDictionaryForFlags(*dictPath, *lexicon)
@@ -29,8 +36,12 @@ func main() {
 	}
 
 	srv := &server{
-		dict:  dict,
-		store: newGameStore(),
+		dict:          dict,
+		store:         newGameStore(*maxGames, *gameTTL),
+		bfsGate:       newBFSGate(*maxConcurrentBFS),
+		createLimiter: newCreateRateLimiter(*createRateLimit, *createRateWindow),
+		pathCache:     newPathCache(*pathCacheSize),
+		bfsWait:       *bfsWait,
 	}
 
 	mux := http.NewServeMux()
@@ -49,7 +60,10 @@ func main() {
 		IdleTimeout:       60 * time.Second,
 	}
 
-	log.Printf("doublet web server listening on port %s", listenPort)
+	log.Printf(
+		"doublet web server listening on port %s (max-games=%d game-ttl=%s create-rate=%d/%s max-concurrent-bfs=%d)",
+		listenPort, *maxGames, *gameTTL, *createRateLimit, *createRateWindow, *maxConcurrentBFS,
+	)
 	if err := httpSrv.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)
 	}

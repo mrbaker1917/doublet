@@ -5,6 +5,13 @@ import (
 	"strings"
 )
 
+const (
+	// MaxCustomChanges is the absolute ceiling for custom difficulty.
+	MaxCustomChanges = 100
+	// MaxCustomExtra is how far above the shortest path custom max may go.
+	MaxCustomExtra = 10
+)
+
 func ValidateInputs(dict Dictionary, start, end string) error {
 	if start == "" || end == "" {
 		return fmt.Errorf("start and target words are required")
@@ -35,20 +42,63 @@ func ValidateDifficulty(difficulty string) error {
 }
 
 func ResolveMaxChanges(difficulty string, requestedMax, shortestChanges int) (int, error) {
-	if requestedMax > 0 {
-		return requestedMax, nil
-	}
-
 	switch difficulty {
 	case "easy":
-		return shortestChanges + 2, nil
+		return shortestChanges + easySlack(shortestChanges), nil
 	case "medium":
-		return shortestChanges + 1, nil
+		return shortestChanges + mediumSlack(shortestChanges), nil
 	case "hard":
 		return shortestChanges, nil
 	case "custom":
-		return 0, fmt.Errorf("custom difficulty requires -max to be set")
+		if requestedMax <= 0 {
+			return 0, fmt.Errorf("custom difficulty requires max to be set")
+		}
+		if requestedMax < shortestChanges {
+			return 0, fmt.Errorf("max changes must be at least %d for this pair", shortestChanges)
+		}
+
+		cap := shortestChanges + MaxCustomExtra
+		if cap > MaxCustomChanges {
+			cap = MaxCustomChanges
+		}
+		if requestedMax > cap {
+			return 0, fmt.Errorf("max changes cannot exceed %d for custom difficulty", cap)
+		}
+
+		return requestedMax, nil
 	default:
 		return 0, fmt.Errorf("unsupported difficulty: %s", difficulty)
+	}
+}
+
+func CustomMaxChangesCap(shortestChanges int) int {
+	cap := shortestChanges + MaxCustomExtra
+	if cap > MaxCustomChanges {
+		return MaxCustomChanges
+	}
+	return cap
+}
+
+// easySlack scales extra moves for easy difficulty by puzzle length.
+func easySlack(shortestChanges int) int {
+	switch {
+	case shortestChanges <= 1:
+		return 1
+	case shortestChanges <= 4:
+		return 2
+	default:
+		return 3
+	}
+}
+
+// mediumSlack scales extra moves for medium difficulty by puzzle length.
+func mediumSlack(shortestChanges int) int {
+	switch {
+	case shortestChanges <= 1:
+		return 0
+	case shortestChanges <= 4:
+		return 1
+	default:
+		return 2
 	}
 }
