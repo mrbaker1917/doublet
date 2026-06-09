@@ -51,10 +51,20 @@ type server struct {
 	dict            game.Dictionary
 	store           *gameStore
 	bfsGate         *bfsGate
-	createLimiter   *createRateLimiter
+	createLimiter   *ipRateLimiter
+	moveLimiter     *ipRateLimiter
+	readLimiter     *ipRateLimiter
 	pathCache       *pathCache
 	bfsWait         time.Duration
 	maxRequestBody  int64
+}
+
+func (s *server) requireRateLimit(w http.ResponseWriter, r *http.Request, limiter *ipRateLimiter) bool {
+	if !limiter.allow(clientIP(r)) {
+		writeError(w, http.StatusTooManyRequests, "too many requests, try again later")
+		return false
+	}
+	return true
 }
 
 func (s *server) shortestPath(start, end string) ([]string, bool, error) {
@@ -100,8 +110,7 @@ func (s *server) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !s.createLimiter.allow(clientIP(r)) {
-		writeError(w, http.StatusTooManyRequests, "too many game requests, try again later")
+	if !s.requireRateLimit(w, r, s.createLimiter) {
 		return
 	}
 
@@ -143,6 +152,10 @@ func (s *server) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 func (s *server) handleMove(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	if !s.requireRateLimit(w, r, s.moveLimiter) {
 		return
 	}
 
@@ -238,6 +251,10 @@ func (s *server) handleGetGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !s.requireRateLimit(w, r, s.readLimiter) {
+		return
+	}
+
 	id := r.PathValue("id")
 	if id == "" {
 		writeError(w, http.StatusBadRequest, "invalid game id")
@@ -260,6 +277,10 @@ func (s *server) handleGetGame(w http.ResponseWriter, r *http.Request) {
 func (s *server) handleSuggestions(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	if !s.requireRateLimit(w, r, s.readLimiter) {
 		return
 	}
 

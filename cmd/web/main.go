@@ -19,12 +19,20 @@ func main() {
 	maxGames := flag.Int("max-games", defaultMaxGames, "maximum in-memory games before evicting least recently used")
 	gameTTL := flag.Duration("game-ttl", defaultGameTTL, "how long inactive games are kept (e.g. 24h, 30m)")
 	createRateLimit := flag.Int("create-rate-limit", defaultCreateRateLimit, "max POST /api/games requests per IP per rate window")
-	createRateWindow := flag.Duration("create-rate-window", defaultCreateRateWindow, "rate limit window for game creation (e.g. 1m)")
+	moveRateLimit := flag.Int("move-rate-limit", defaultMoveRateLimit, "max POST /api/games/{id}/move requests per IP per rate window")
+	readRateLimit := flag.Int("read-rate-limit", defaultReadRateLimit, "max GET /api/suggestions and /api/games/{id} requests per IP per rate window")
+	apiRateWindow := flag.Duration("api-rate-window", defaultAPIRateWindow, "rate limit window for API requests (e.g. 1m)")
+	createRateWindow := flag.Duration("create-rate-window", 0, "deprecated alias for -api-rate-window")
 	maxConcurrentBFS := flag.Int("max-concurrent-bfs", defaultMaxConcurrentBFS, "max simultaneous BFS path searches")
 	bfsWait := flag.Duration("bfs-wait", defaultBFSWait, "how long to wait for a BFS slot before returning busy")
 	pathCacheSize := flag.Int("path-cache-size", defaultPathCacheSize, "cached start/end shortest paths")
 	maxRequestBody := flag.Int64("max-request-body", defaultMaxRequestBody, "maximum JSON request body size in bytes")
 	flag.Parse()
+
+	rateWindow := *apiRateWindow
+	if *createRateWindow > 0 {
+		rateWindow = *createRateWindow
+	}
 
 	dict, err := game.LoadDictionaryForFlags(*dictPath, *lexicon)
 	if err != nil {
@@ -40,7 +48,9 @@ func main() {
 		dict:           dict,
 		store:          newGameStore(*maxGames, *gameTTL),
 		bfsGate:        newBFSGate(*maxConcurrentBFS),
-		createLimiter:  newCreateRateLimiter(*createRateLimit, *createRateWindow),
+		createLimiter:  newIPRateLimiter(*createRateLimit, rateWindow),
+		moveLimiter:    newIPRateLimiter(*moveRateLimit, rateWindow),
+		readLimiter:    newIPRateLimiter(*readRateLimit, rateWindow),
 		pathCache:      newPathCache(*pathCacheSize),
 		bfsWait:        *bfsWait,
 		maxRequestBody: *maxRequestBody,
@@ -63,8 +73,8 @@ func main() {
 	}
 
 	log.Printf(
-		"doublet web server listening on port %s (max-games=%d game-ttl=%s create-rate=%d/%s max-concurrent-bfs=%d)",
-		listenPort, *maxGames, *gameTTL, *createRateLimit, *createRateWindow, *maxConcurrentBFS,
+		"doublet web server listening on port %s (max-games=%d game-ttl=%s api-rate=%d/%d/%d per %s max-concurrent-bfs=%d)",
+		listenPort, *maxGames, *gameTTL, *createRateLimit, *moveRateLimit, *readRateLimit, rateWindow, *maxConcurrentBFS,
 	)
 	if err := httpSrv.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)

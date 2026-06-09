@@ -43,9 +43,14 @@ A background cleanup runs every 5 minutes to drop expired games.
 
 `POST /api/games` is protected against CPU exhaustion:
 
-- `-create-rate-limit` / `-create-rate-window` (default `20` per `1m` per IP) — rejects excess create requests with HTTP 429
 - `-max-concurrent-bfs` (default `4`) — caps simultaneous path searches; excess waits up to `-bfs-wait` (default `5s`) then returns HTTP 503
 - `-path-cache-size` (default `4096`) — caches shortest paths for repeated start/end pairs
+
+All JSON API routes are rate limited per IP (HTTP 429) using `-api-rate-window` (default `1m`; `-create-rate-window` is a deprecated alias):
+
+- `-create-rate-limit` (default `20`) — `POST /api/games`
+- `-move-rate-limit` (default `120`) — `POST /api/games/{id}/move`
+- `-read-rate-limit` (default `180`) — `GET /api/suggestions` and `GET /api/games/{id}`
 
 JSON API bodies are capped at `-max-request-body` bytes (default `8192`); larger requests get HTTP 413.
 

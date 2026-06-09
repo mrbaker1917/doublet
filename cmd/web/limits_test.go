@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func TestCreateRateLimiterBlocksAfterLimit(t *testing.T) {
-	limiter := newCreateRateLimiter(2, time.Minute)
+func TestIPRateLimiterBlocksAfterLimit(t *testing.T) {
+	limiter := newIPRateLimiter(2, time.Minute)
 
 	if !limiter.allow("127.0.0.1") {
 		t.Fatal("first request should be allowed")
@@ -20,8 +20,8 @@ func TestCreateRateLimiterBlocksAfterLimit(t *testing.T) {
 	}
 }
 
-func TestCreateRateLimiterResetsAfterWindow(t *testing.T) {
-	limiter := newCreateRateLimiter(1, 10*time.Millisecond)
+func TestIPRateLimiterResetsAfterWindow(t *testing.T) {
+	limiter := newIPRateLimiter(1, 10*time.Millisecond)
 
 	if !limiter.allow("127.0.0.1") {
 		t.Fatal("first request should be allowed")
@@ -37,8 +37,8 @@ func TestCreateRateLimiterResetsAfterWindow(t *testing.T) {
 	}
 }
 
-func TestCreateRateLimiterTracksIPsSeparately(t *testing.T) {
-	limiter := newCreateRateLimiter(1, time.Minute)
+func TestIPRateLimiterTracksIPsSeparately(t *testing.T) {
+	limiter := newIPRateLimiter(1, time.Minute)
 
 	if !limiter.allow("1.1.1.1") {
 		t.Fatal("first IP should be allowed")

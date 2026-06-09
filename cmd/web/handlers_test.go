@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestDecodeJSONRejectsOversizedBody(t *testing.T) {
@@ -46,5 +47,26 @@ func TestWriteDecodeErrorUses413ForLargeBody(t *testing.T) {
 
 	if rec.Code != http.StatusRequestEntityTooLarge {
 		t.Fatalf("status = %d, want 413", rec.Code)
+	}
+}
+
+func TestHandleSuggestionsReturns429WhenRateLimited(t *testing.T) {
+	srv := &server{
+		readLimiter: newIPRateLimiter(1, time.Minute),
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/api/suggestions", nil)
+	req.RemoteAddr = "203.0.113.50:1234"
+
+	rec := httptest.NewRecorder()
+	srv.handleSuggestions(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("first request status = %d, want 200", rec.Code)
+	}
+
+	rec = httptest.NewRecorder()
+	srv.handleSuggestions(rec, req)
+	if rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("second request status = %d, want 429", rec.Code)
 	}
 }

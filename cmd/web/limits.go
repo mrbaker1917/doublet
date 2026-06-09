@@ -10,7 +10,9 @@ import (
 
 const (
 	defaultCreateRateLimit  = 20
-	defaultCreateRateWindow = time.Minute
+	defaultMoveRateLimit    = 120
+	defaultReadRateLimit    = 180
+	defaultAPIRateWindow    = time.Minute
 	defaultMaxConcurrentBFS = 4
 	defaultBFSWait          = 5 * time.Second
 	defaultPathCacheSize    = 4096
@@ -40,7 +42,7 @@ func (g *bfsGate) release() {
 	<-g.sem
 }
 
-type createRateLimiter struct {
+type ipRateLimiter struct {
 	mu      sync.Mutex
 	entries map[string]*rateEntry
 	limit   int
@@ -52,21 +54,21 @@ type rateEntry struct {
 	reset time.Time
 }
 
-func newCreateRateLimiter(limit int, window time.Duration) *createRateLimiter {
+func newIPRateLimiter(limit int, window time.Duration) *ipRateLimiter {
 	if limit <= 0 {
-		limit = defaultCreateRateLimit
+		limit = defaultReadRateLimit
 	}
 	if window <= 0 {
-		window = defaultCreateRateWindow
+		window = defaultAPIRateWindow
 	}
-	return &createRateLimiter{
+	return &ipRateLimiter{
 		entries: make(map[string]*rateEntry),
 		limit:   limit,
 		window:  window,
 	}
 }
 
-func (l *createRateLimiter) allow(key string) bool {
+func (l *ipRateLimiter) allow(key string) bool {
 	now := time.Now()
 
 	l.mu.Lock()
@@ -87,7 +89,7 @@ func (l *createRateLimiter) allow(key string) bool {
 	return true
 }
 
-func (l *createRateLimiter) cleanupLocked(now time.Time) {
+func (l *ipRateLimiter) cleanupLocked(now time.Time) {
 	for key, entry := range l.entries {
 		if now.After(entry.reset) {
 			delete(l.entries, key)
