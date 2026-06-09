@@ -29,8 +29,8 @@ func TestResolveMaxChangesPresetDifficultiesIgnoreRequestedMax(t *testing.T) {
 
 func TestScaledSlack(t *testing.T) {
 	tests := []struct {
-		shortest       int
-		easy, medium   int
+		shortest     int
+		easy, medium int
 	}{
 		{1, 2, 1},
 		{2, 4, 3},
