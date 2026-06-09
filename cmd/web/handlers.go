@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 )
+
+var errBFSBusy = errors.New("bfs capacity exhausted")
 
 type errorResponse struct {
 	Error string `json:"error"`
@@ -40,8 +43,27 @@ type suggestionsResponse struct {
 }
 
 type server struct {
-	dict  game.Dictionary
-	store *gameStore
+	dict          game.Dictionary
+	store         *gameStore
+	bfsGate       *bfsGate
+	createLimiter *createRateLimiter
+	pathCache     *pathCache
+	bfsWait       time.Duration
+}
+
+func (s *server) shortestPath(start, end string) ([]string, bool, error) {
+	if path, found, ok := s.pathCache.get(start, end); ok {
+		return path, found, nil
+	}
+
+	if !s.bfsGate.acquire(s.bfsWait) {
+		return nil, false, errBFSBusy
+	}
+	path, found := game.ShortestPathBFS(s.dict, start, end, 0)
+	s.bfsGate.release()
+
+	s.pathCache.put(start, end, path, found)
+	return path, found, nil
 }
 
 func (s *server) handleCreateGame(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +94,16 @@ func (s *server) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortest, found := game.ShortestPathBFS(s.dict, start, end, 0)
+	if !s.createLimiter.allow(clientIP(r)) {
+		writeError(w, http.StatusTooManyRequests, "too many game requests, try again later")
+		return
+	}
+
+	shortest, found, err := s.shortestPath(start, end)
+	if errors.Is(err, errBFSBusy) {
+		writeError(w, http.StatusServiceUnavailable, "server busy, try again")
+		return
+	}
 	if !found {
 		writeError(w, http.StatusBadRequest, "no path found with current dictionary")
 		return

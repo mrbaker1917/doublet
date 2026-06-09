@@ -34,6 +34,19 @@ go run ./cmd/web
 
 Then visit `http://localhost:8080` to play in the browser.
 
+Game state is kept in memory with bounds to limit resource use:
+
+- `-max-games` (default `2000`) — evicts the least recently used game when full
+- `-game-ttl` (default `24h`) — removes inactive games after this duration; access refreshes the timer
+
+A background cleanup runs every 5 minutes to drop expired games.
+
+`POST /api/games` is protected against CPU exhaustion:
+
+- `-create-rate-limit` / `-create-rate-window` (default `20` per `1m` per IP) — rejects excess create requests with HTTP 429
+- `-max-concurrent-bfs` (default `4`) — caps simultaneous path searches; excess waits up to `-bfs-wait` (default `5s`) then returns HTTP 503
+- `-path-cache-size` (default `4096`) — caches shortest paths for repeated start/end pairs
+
 The UI supports suggested doublets, custom start/target words, difficulty selection, move history, and win/lose feedback.
 
 API endpoints:
@@ -73,10 +86,10 @@ When `-dict` is provided, it overrides `-lexicon`.
 
 ## Difficulty Options
 
-- `easy`: max changes = shortest path + 2
-- `medium`: max changes = shortest path + 1
-- `hard`: max changes = shortest path
-- `custom`: requires `-max`
+- `easy`: max changes = shortest path + scaled slack (`+1` for 1-step, `+2` for 2–4 steps, `+3` for 5+)
+- `medium`: max changes = shortest path + scaled slack (`+0` for 1-step, `+1` for 2–4 steps, `+2` for 5+)
+- `hard`: max changes = shortest path (no slack)
+- `custom`: requires `-max`; must be at least the shortest path length and at most `shortest + 10` (capped at 100). Preset difficulties ignore any `max` sent in the API.
 
 Examples:
 
