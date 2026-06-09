@@ -13,9 +13,9 @@ const (
 	gameStatusWon     = "won"
 	gameStatusLost    = "lost"
 
-	defaultMaxGames          = 2000
-	defaultGameTTL           = 24 * time.Hour
-	defaultCleanupInterval   = 5 * time.Minute
+	defaultMaxGames        = 2000
+	defaultGameTTL         = 24 * time.Hour
+	defaultCleanupInterval = 5 * time.Minute
 )
 
 var (

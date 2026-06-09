@@ -9,11 +9,11 @@ import (
 )
 
 const (
-	defaultCreateRateLimit   = 20
-	defaultCreateRateWindow  = time.Minute
-	defaultMaxConcurrentBFS  = 4
-	defaultBFSWait           = 5 * time.Second
-	defaultPathCacheSize     = 4096
+	defaultCreateRateLimit  = 20
+	defaultCreateRateWindow = time.Minute
+	defaultMaxConcurrentBFS = 4
+	defaultBFSWait          = 5 * time.Second
+	defaultPathCacheSize    = 4096
 )
 
 type bfsGate struct {
