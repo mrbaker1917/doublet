@@ -65,7 +65,7 @@ func main() {
 
 	httpSrv := &http.Server{
 		Addr:              ":" + listenPort,
-		Handler:           mux,
+		Handler:           securityHeaders(mux),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      10 * time.Second,

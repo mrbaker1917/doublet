@@ -54,6 +54,8 @@ All JSON API routes are rate limited per IP (HTTP 429) using `-api-rate-window` 
 
 JSON API bodies are capped at `-max-request-body` bytes (default `8192`); larger requests get HTTP 413.
 
+All responses include security headers: a strict Content-Security-Policy (same-origin scripts, styles, and API calls), clickjacking protection, `nosniff`, referrer and permissions policies, and HSTS on HTTPS (including behind Fly’s TLS terminator via `X-Forwarded-Proto`).
+
 The UI supports suggested doublets, custom start/target words, difficulty selection, move history, and win/lose feedback.
 
 API endpoints:

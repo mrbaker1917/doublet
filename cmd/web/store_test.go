@@ -1,9 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"strings"
+	"sync"
 	"testing"
 	"time"
+
+	"doublet/internal/game"
 )
 
 func TestGameStoreEvictsExpiredGame(t *testing.T) {
@@ -120,5 +125,109 @@ func TestGameStoreGetReturnsCopy(t *testing.T) {
 	}
 	if again.SolutionPath[0] != "cat" {
 		t.Fatalf("solution path mutated in store: %q", again.SolutionPath[0])
+	}
+}
+
+func testDictionary(t *testing.T) game.Dictionary {
+	t.Helper()
+	dict, err := game.LoadDictionaryFromReader(strings.NewReader("cat\ncot\ncab\ndog\n"))
+	if err != nil {
+		t.Fatalf("load dictionary: %v", err)
+	}
+	return dict
+}
+
+func TestGameStoreTryMoveRejectsStaleConcurrentMove(t *testing.T) {
+	store := newGameStoreWithCleanup(10, time.Hour, 0)
+	dict := testDictionary(t)
+
+	created, err := store.create(&Game{
+		Start:      "cat",
+		End:        "dog",
+		Current:    "cat",
+		Status:     gameStatusPlaying,
+		Difficulty: "easy",
+		MaxChanges: 5,
+		History:    []string{"cat"},
+	})
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	first, err := store.tryMove(created.ID, "cot", dict)
+	if err != nil || !first.valid {
+		t.Fatalf("first move: valid=%v err=%v", first.valid, err)
+	}
+
+	second, err := store.tryMove(created.ID, "cab", dict)
+	if err != nil {
+		t.Fatalf("second move: %v", err)
+	}
+	if second.valid {
+		t.Fatal("second move from stale current should be rejected")
+	}
+	if second.message != "you must change exactly one letter" {
+		t.Fatalf("unexpected message: %q", second.message)
+	}
+
+	again, err := store.get(created.ID)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if again.Current != "cot" {
+		t.Fatalf("current = %q, want cot", again.Current)
+	}
+}
+
+func TestGameStoreConcurrentReadsAndMoves(t *testing.T) {
+	store := newGameStoreWithCleanup(100, time.Hour, 0)
+	dict := testDictionary(t)
+
+	created, err := store.create(&Game{
+		Start:      "cat",
+		End:        "dog",
+		Current:    "cat",
+		Status:     gameStatusPlaying,
+		Difficulty: "easy",
+		MaxChanges: 5,
+		History:    []string{"cat"},
+	})
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	const workers = 32
+	var wg sync.WaitGroup
+	wg.Add(workers)
+
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer wg.Done()
+			for j := 0; j < 50; j++ {
+				g, err := store.get(created.ID)
+				if err != nil {
+					continue
+				}
+				_, _ = json.Marshal(g)
+
+				outcome, err := store.tryMove(created.ID, "cot", dict)
+				if err == nil && outcome.valid {
+					_, _ = json.Marshal(outcome.game)
+				}
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	final, err := store.get(created.ID)
+	if err != nil {
+		t.Fatalf("get final: %v", err)
+	}
+	if final.Status != gameStatusPlaying && final.Status != gameStatusWon && final.Status != gameStatusLost {
+		t.Fatalf("unexpected status: %q", final.Status)
+	}
+	if final.Current != "cot" && final.Current != "dog" {
+		t.Fatalf("unexpected current word: %q", final.Current)
 	}
 }

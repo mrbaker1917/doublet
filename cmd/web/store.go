@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rand"
+	"doublet/internal/game"
 	"encoding/hex"
 	"errors"
 	"sync"
@@ -20,7 +21,6 @@ const (
 
 var (
 	errGameNotFound = errors.New("game not found")
-	errGameFinished = errors.New("game is already finished")
 )
 
 type Game struct {
@@ -174,6 +174,7 @@ func (s *gameStore) create(g *Game) (*Game, error) {
 	return stored.game.clone(), nil
 }
 
+// get returns a snapshot clone safe to read or JSON-encode without holding the store lock.
 func (s *gameStore) get(id string) (*Game, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -193,29 +194,66 @@ func (s *gameStore) get(id string) (*Game, error) {
 	return sg.game.clone(), nil
 }
 
-func (s *gameStore) applyMove(id, word string) (*Game, error) {
+type moveOutcome struct {
+	valid   bool
+	game    *Game
+	message string
+	won     bool
+	lost    bool
+}
+
+// tryMove validates and applies a move under the store lock, returning a snapshot safe for JSON encoding.
+func (s *gameStore) tryMove(id, rawWord string, dict game.Dictionary) (moveOutcome, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	sg, ok := s.games[id]
 	if !ok {
-		return nil, errGameNotFound
+		return moveOutcome{}, errGameNotFound
 	}
 
 	now := time.Now()
 	if s.isExpired(sg, now) {
 		delete(s.games, id)
-		return nil, errGameNotFound
+		return moveOutcome{}, errGameNotFound
 	}
 
 	g := &sg.game
 	if g.Status != gameStatusPlaying {
-		return nil, errGameFinished
+		return moveOutcome{
+			valid:   false,
+			message: "game is already finished",
+			won:     g.Status == gameStatusWon,
+			lost:    g.Status == gameStatusLost,
+		}, nil
 	}
 
-	g.Current = word
+	next := game.Normalize(rawWord)
+	if next == "" {
+		return moveOutcome{valid: false, message: "word is required"}, nil
+	}
+	if len(next) != len(g.Current) {
+		return moveOutcome{
+			valid:   false,
+			message: "word must be the same length as the current word",
+		}, nil
+	}
+	if !game.IsWord(dict, next) {
+		return moveOutcome{
+			valid:   false,
+			message: next + " is not in the dictionary",
+		}, nil
+	}
+	if !game.OneLetterApart(g.Current, next) {
+		return moveOutcome{
+			valid:   false,
+			message: "you must change exactly one letter",
+		}, nil
+	}
+
+	g.Current = next
 	g.MovesUsed++
-	g.History = append(g.History, word)
+	g.History = append(g.History, next)
 
 	if g.Current == g.End {
 		g.Status = gameStatusWon
@@ -224,7 +262,14 @@ func (s *gameStore) applyMove(id, word string) (*Game, error) {
 	}
 
 	sg.lastSeenAt = now
-	return g.clone(), nil
+	snapshot := g.clone()
+
+	return moveOutcome{
+		valid:   true,
+		game:    snapshot,
+		won:     snapshot.Status == gameStatusWon,
+		lost:    snapshot.Status == gameStatusLost,
+	}, nil
 }
 
 func newGameID() (string, error) {

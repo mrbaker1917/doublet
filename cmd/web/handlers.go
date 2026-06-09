@@ -171,76 +171,36 @@ func (s *server) handleMove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	g, err := s.store.get(id)
+	outcome, err := s.store.tryMove(id, req.Word, s.dict)
 	if err != nil {
 		if errors.Is(err, errGameNotFound) {
 			writeError(w, http.StatusNotFound, "game not found")
-			return
-		}
-		writeError(w, http.StatusInternalServerError, "failed to load game")
-		return
-	}
-	if g.Status != gameStatusPlaying {
-		writeJSON(w, http.StatusOK, moveResponse{
-			Valid:   false,
-			Message: "game is already finished",
-			Won:     g.Status == gameStatusWon,
-			Lost:    g.Status == gameStatusLost,
-		})
-		return
-	}
-
-	next := game.Normalize(req.Word)
-	if next == "" {
-		writeJSON(w, http.StatusOK, moveResponse{Valid: false, Message: "word is required"})
-		return
-	}
-	if len(next) != len(g.Current) {
-		writeJSON(w, http.StatusOK, moveResponse{
-			Valid:   false,
-			Message: "word must be the same length as the current word",
-		})
-		return
-	}
-	if !game.IsWord(s.dict, next) {
-		writeJSON(w, http.StatusOK, moveResponse{
-			Valid:   false,
-			Message: next + " is not in the dictionary",
-		})
-		return
-	}
-	if !game.OneLetterApart(g.Current, next) {
-		writeJSON(w, http.StatusOK, moveResponse{
-			Valid:   false,
-			Message: "you must change exactly one letter",
-		})
-		return
-	}
-
-	updated, err := s.store.applyMove(id, next)
-	if err != nil {
-		if errors.Is(err, errGameNotFound) {
-			writeError(w, http.StatusNotFound, "game not found")
-			return
-		}
-		if errors.Is(err, errGameFinished) {
-			writeJSON(w, http.StatusOK, moveResponse{Valid: false, Message: "game is already finished"})
 			return
 		}
 		writeError(w, http.StatusInternalServerError, "failed to apply move")
 		return
 	}
 
+	if !outcome.valid {
+		writeJSON(w, http.StatusOK, moveResponse{
+			Valid:   false,
+			Message: outcome.message,
+			Won:     outcome.won,
+			Lost:    outcome.lost,
+		})
+		return
+	}
+
 	resp := moveResponse{
 		Valid:     true,
-		Current:   updated.Current,
-		MovesUsed: updated.MovesUsed,
-		History:   updated.History,
-		Won:       updated.Status == gameStatusWon,
-		Lost:      updated.Status == gameStatusLost,
+		Current:   outcome.game.Current,
+		MovesUsed: outcome.game.MovesUsed,
+		History:   outcome.game.History,
+		Won:       outcome.won,
+		Lost:      outcome.lost,
 	}
-	if updated.Status == gameStatusLost {
-		resp.SolutionPath = updated.SolutionPath
+	if outcome.lost {
+		resp.SolutionPath = outcome.game.SolutionPath
 	}
 	writeJSON(w, http.StatusOK, resp)
 }
