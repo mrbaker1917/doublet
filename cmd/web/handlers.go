@@ -8,7 +8,12 @@ import (
 	"time"
 )
 
-var errBFSBusy = errors.New("bfs capacity exhausted")
+const defaultMaxRequestBody = 8192
+
+var (
+	errBFSBusy             = errors.New("bfs capacity exhausted")
+	errRequestBodyTooLarge = errors.New("request body too large")
+)
 
 type errorResponse struct {
 	Error string `json:"error"`
@@ -43,12 +48,13 @@ type suggestionsResponse struct {
 }
 
 type server struct {
-	dict          game.Dictionary
-	store         *gameStore
-	bfsGate       *bfsGate
-	createLimiter *createRateLimiter
-	pathCache     *pathCache
-	bfsWait       time.Duration
+	dict            game.Dictionary
+	store           *gameStore
+	bfsGate         *bfsGate
+	createLimiter   *createRateLimiter
+	pathCache       *pathCache
+	bfsWait         time.Duration
+	maxRequestBody  int64
 }
 
 func (s *server) shortestPath(start, end string) ([]string, bool, error) {
@@ -73,8 +79,8 @@ func (s *server) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req createGameRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON body")
+	if err := s.decodeJSON(w, r, &req); err != nil {
+		writeDecodeError(w, err)
 		return
 	}
 
@@ -147,8 +153,8 @@ func (s *server) handleMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req moveRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON body")
+	if err := s.decodeJSON(w, r, &req); err != nil {
+		writeDecodeError(w, err)
 		return
 	}
 
@@ -263,6 +269,31 @@ func (s *server) handleSuggestions(w http.ResponseWriter, r *http.Request) {
 		Medium: medium,
 		Hard:   hard,
 	})
+}
+
+func (s *server) decodeJSON(w http.ResponseWriter, r *http.Request, dst any) error {
+	maxBytes := s.maxRequestBody
+	if maxBytes <= 0 {
+		maxBytes = defaultMaxRequestBody
+	}
+
+	limited := http.MaxBytesReader(w, r.Body, maxBytes)
+	if err := json.NewDecoder(limited).Decode(dst); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			return errRequestBodyTooLarge
+		}
+		return err
+	}
+	return nil
+}
+
+func writeDecodeError(w http.ResponseWriter, err error) {
+	if errors.Is(err, errRequestBodyTooLarge) {
+		writeError(w, http.StatusRequestEntityTooLarge, "request body too large")
+		return
+	}
+	writeError(w, http.StatusBadRequest, "invalid JSON body")
 }
 
 func writeJSON(w http.ResponseWriter, status int, payload any) {

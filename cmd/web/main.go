@@ -23,6 +23,7 @@ func main() {
 	maxConcurrentBFS := flag.Int("max-concurrent-bfs", defaultMaxConcurrentBFS, "max simultaneous BFS path searches")
 	bfsWait := flag.Duration("bfs-wait", defaultBFSWait, "how long to wait for a BFS slot before returning busy")
 	pathCacheSize := flag.Int("path-cache-size", defaultPathCacheSize, "cached start/end shortest paths")
+	maxRequestBody := flag.Int64("max-request-body", defaultMaxRequestBody, "maximum JSON request body size in bytes")
 	flag.Parse()
 
 	dict, err := game.LoadDictionaryForFlags(*dictPath, *lexicon)
@@ -36,12 +37,13 @@ func main() {
 	}
 
 	srv := &server{
-		dict:          dict,
-		store:         newGameStore(*maxGames, *gameTTL),
-		bfsGate:       newBFSGate(*maxConcurrentBFS),
-		createLimiter: newCreateRateLimiter(*createRateLimit, *createRateWindow),
-		pathCache:     newPathCache(*pathCacheSize),
-		bfsWait:       *bfsWait,
+		dict:           dict,
+		store:          newGameStore(*maxGames, *gameTTL),
+		bfsGate:        newBFSGate(*maxConcurrentBFS),
+		createLimiter:  newCreateRateLimiter(*createRateLimit, *createRateWindow),
+		pathCache:      newPathCache(*pathCacheSize),
+		bfsWait:        *bfsWait,
+		maxRequestBody: *maxRequestBody,
 	}
 
 	mux := http.NewServeMux()

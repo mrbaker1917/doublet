@@ -47,6 +47,8 @@ A background cleanup runs every 5 minutes to drop expired games.
 - `-max-concurrent-bfs` (default `4`) — caps simultaneous path searches; excess waits up to `-bfs-wait` (default `5s`) then returns HTTP 503
 - `-path-cache-size` (default `4096`) — caches shortest paths for repeated start/end pairs
 
+JSON API bodies are capped at `-max-request-body` bytes (default `8192`); larger requests get HTTP 413.
+
 The UI supports suggested doublets, custom start/target words, difficulty selection, move history, and win/lose feedback.
 
 API endpoints:
