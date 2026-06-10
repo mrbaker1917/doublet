@@ -9,6 +9,9 @@ const suggestionsEl = document.getElementById("suggestions");
 const difficultyInput = document.getElementById("difficulty-input");
 const maxLabel = document.getElementById("max-label");
 const newGameBtn = document.getElementById("new-game-btn");
+const hintBtn = document.getElementById("hint-btn");
+const restartBtn = document.getElementById("restart-btn");
+const giveUpBtn = document.getElementById("give-up-btn");
 const solutionWrap = document.getElementById("solution-wrap");
 const solutionPath = document.getElementById("solution-path");
 
@@ -18,10 +21,24 @@ function showError(el, message) {
   if (!message) {
     el.hidden = true;
     el.textContent = "";
+    el.className = "error";
     return;
   }
   el.hidden = false;
   el.textContent = message;
+  el.className = "error";
+}
+
+function showMessage(el, message, kind = "error") {
+  if (!message) {
+    el.hidden = true;
+    el.textContent = "";
+    el.className = "message";
+    return;
+  }
+  el.hidden = false;
+  el.textContent = message;
+  el.className = kind === "ok" ? "message ok" : "message";
 }
 
 function formatHistory(words) {
@@ -75,7 +92,7 @@ function showStartScreen() {
   startScreen.hidden = false;
   gameScreen.hidden = true;
   showError(startError, "");
-  showError(moveMessage, "");
+  showMessage(moveMessage, "");
   showError(gameResult, "");
   solutionWrap.hidden = true;
   solutionPath.textContent = "";
@@ -83,6 +100,9 @@ function showStartScreen() {
   newGameBtn.hidden = true;
   document.getElementById("move-input").disabled = false;
   moveForm.querySelector("button").disabled = false;
+  hintBtn.disabled = false;
+  restartBtn.disabled = false;
+  giveUpBtn.disabled = false;
   loadSuggestions();
 }
 
@@ -91,11 +111,17 @@ function showGameScreen(game) {
   startScreen.hidden = true;
   gameScreen.hidden = false;
   showError(startError, "");
-  showError(moveMessage, "");
+  showMessage(moveMessage, "");
   showError(gameResult, "");
   solutionWrap.hidden = true;
   solutionPath.textContent = "";
   updateGameView(game);
+  document.getElementById("move-input").disabled = false;
+  moveForm.querySelector("button").disabled = false;
+  hintBtn.disabled = false;
+  restartBtn.disabled = false;
+  giveUpBtn.disabled = false;
+  newGameBtn.hidden = true;
   document.getElementById("move-input").focus();
 }
 
@@ -103,6 +129,9 @@ function finishGame(result) {
   const { won, lost } = result;
   document.getElementById("move-input").disabled = true;
   moveForm.querySelector("button").disabled = true;
+  hintBtn.disabled = true;
+  restartBtn.disabled = true;
+  giveUpBtn.disabled = true;
   newGameBtn.hidden = false;
 
   if (won) {
@@ -115,7 +144,9 @@ function finishGame(result) {
   if (lost) {
     gameResult.hidden = false;
     gameResult.className = "result lost";
-    gameResult.textContent = "No moves left. Better luck next time.";
+    gameResult.textContent = result.gaveUp
+      ? "You gave up. Here's the shortest path."
+      : "No moves left. Better luck next time.";
     if (result.solutionPath?.length) {
       solutionWrap.hidden = false;
       solutionPath.textContent = formatHistory(result.solutionPath);
@@ -159,7 +190,7 @@ moveForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  showError(moveMessage, "");
+  showMessage(moveMessage, "");
   const formData = new FormData(moveForm);
   const word = formData.get("word");
 
@@ -170,7 +201,7 @@ moveForm.addEventListener("submit", async (event) => {
     });
 
     if (!result.valid) {
-      showError(moveMessage, result.message);
+      showMessage(moveMessage, result.message);
       return;
     }
 
@@ -189,7 +220,81 @@ moveForm.addEventListener("submit", async (event) => {
       finishGame(result);
     }
   } catch (error) {
-    showError(moveMessage, error.message);
+    showMessage(moveMessage, error.message);
+  }
+});
+
+hintBtn.addEventListener("click", async () => {
+  if (!activeGame) {
+    return;
+  }
+
+  showMessage(moveMessage, "");
+
+  try {
+    const result = await api(`/api/games/${activeGame.id}/hint`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    if (!result.ok) {
+      showMessage(moveMessage, result.message || "No hint available.");
+      return;
+    }
+
+    showMessage(moveMessage, `Hint: try "${result.hint}"`, "ok");
+  } catch (error) {
+    showMessage(moveMessage, error.message);
+  }
+});
+
+restartBtn.addEventListener("click", async () => {
+  if (!activeGame) {
+    return;
+  }
+
+  showMessage(moveMessage, "");
+  showError(gameResult, "");
+  solutionWrap.hidden = true;
+  solutionPath.textContent = "";
+
+  try {
+    const game = await api(`/api/games/${activeGame.id}/restart`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    showGameScreen(game);
+    showMessage(moveMessage, "Round restarted.", "ok");
+  } catch (error) {
+    showMessage(moveMessage, error.message);
+  }
+});
+
+giveUpBtn.addEventListener("click", async () => {
+  if (!activeGame) {
+    return;
+  }
+
+  showMessage(moveMessage, "");
+
+  try {
+    const result = await api(`/api/games/${activeGame.id}/solve`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    if (!result.ok) {
+      showMessage(moveMessage, result.message || "Could not reveal the solution.");
+      return;
+    }
+
+    activeGame = {
+      ...activeGame,
+      status: "lost",
+    };
+    finishGame(result);
+  } catch (error) {
+    showMessage(moveMessage, error.message);
   }
 });
 

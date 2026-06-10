@@ -272,6 +272,107 @@ func (s *gameStore) tryMove(id, rawWord string, dict game.Dictionary) (moveOutco
 	}, nil
 }
 
+type hintOutcome struct {
+	ok      bool
+	hint    string
+	message string
+}
+
+func (s *gameStore) hint(id string, dict game.Dictionary) (hintOutcome, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	sg, ok := s.games[id]
+	if !ok {
+		return hintOutcome{}, errGameNotFound
+	}
+
+	now := time.Now()
+	if s.isExpired(sg, now) {
+		delete(s.games, id)
+		return hintOutcome{}, errGameNotFound
+	}
+
+	g := &sg.game
+	if g.Status != gameStatusPlaying {
+		return hintOutcome{message: "game is already finished"}, nil
+	}
+	if g.Current == g.End {
+		return hintOutcome{message: "you are already at the target"}, nil
+	}
+
+	step, ok := game.HintNextStep(dict, g.Current, g.End, g.SolutionPath)
+	if !ok {
+		return hintOutcome{message: "no hint available from current position"}, nil
+	}
+
+	sg.lastSeenAt = now
+	return hintOutcome{ok: true, hint: step}, nil
+}
+
+func (s *gameStore) restart(id string) (*Game, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	sg, ok := s.games[id]
+	if !ok {
+		return nil, errGameNotFound
+	}
+
+	now := time.Now()
+	if s.isExpired(sg, now) {
+		delete(s.games, id)
+		return nil, errGameNotFound
+	}
+
+	g := &sg.game
+	g.Current = g.Start
+	g.MovesUsed = 0
+	g.History = []string{g.Start}
+	g.Status = gameStatusPlaying
+	sg.lastSeenAt = now
+
+	return g.clone(), nil
+}
+
+type solveOutcome struct {
+	ok           bool
+	game         *Game
+	solutionPath []string
+	message      string
+}
+
+func (s *gameStore) solve(id string) (solveOutcome, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	sg, ok := s.games[id]
+	if !ok {
+		return solveOutcome{}, errGameNotFound
+	}
+
+	now := time.Now()
+	if s.isExpired(sg, now) {
+		delete(s.games, id)
+		return solveOutcome{}, errGameNotFound
+	}
+
+	g := &sg.game
+	if g.Status != gameStatusPlaying {
+		return solveOutcome{message: "game is already finished"}, nil
+	}
+
+	g.Status = gameStatusLost
+	sg.lastSeenAt = now
+	snapshot := g.clone()
+
+	return solveOutcome{
+		ok:           true,
+		game:         snapshot,
+		solutionPath: append([]string(nil), g.SolutionPath...),
+	}, nil
+}
+
 func newGameID() (string, error) {
 	var b [16]byte
 	if _, err := rand.Read(b[:]); err != nil {

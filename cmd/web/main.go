@@ -61,6 +61,9 @@ func main() {
 	mux.HandleFunc("POST /api/games", srv.handleCreateGame)
 	mux.HandleFunc("GET /api/games/{id}", srv.handleGetGame)
 	mux.HandleFunc("POST /api/games/{id}/move", srv.handleMove)
+	mux.HandleFunc("POST /api/games/{id}/hint", srv.handleHint)
+	mux.HandleFunc("POST /api/games/{id}/restart", srv.handleRestart)
+	mux.HandleFunc("POST /api/games/{id}/solve", srv.handleSolve)
 	mux.Handle("/", staticHandler())
 
 	httpSrv := &http.Server{
