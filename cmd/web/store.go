@@ -265,10 +265,10 @@ func (s *gameStore) tryMove(id, rawWord string, dict game.Dictionary) (moveOutco
 	snapshot := g.clone()
 
 	return moveOutcome{
-		valid:   true,
-		game:    snapshot,
-		won:     snapshot.Status == gameStatusWon,
-		lost:    snapshot.Status == gameStatusLost,
+		valid: true,
+		game:  snapshot,
+		won:   snapshot.Status == gameStatusWon,
+		lost:  snapshot.Status == gameStatusLost,
 	}, nil
 }
 

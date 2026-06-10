@@ -48,15 +48,15 @@ type suggestionsResponse struct {
 }
 
 type server struct {
-	dict            game.Dictionary
-	store           *gameStore
-	bfsGate         *bfsGate
-	createLimiter   *ipRateLimiter
-	moveLimiter     *ipRateLimiter
-	readLimiter     *ipRateLimiter
-	pathCache       *pathCache
-	bfsWait         time.Duration
-	maxRequestBody  int64
+	dict           game.Dictionary
+	store          *gameStore
+	bfsGate        *bfsGate
+	createLimiter  *ipRateLimiter
+	moveLimiter    *ipRateLimiter
+	readLimiter    *ipRateLimiter
+	pathCache      *pathCache
+	bfsWait        time.Duration
+	maxRequestBody int64
 }
 
 func (s *server) requireRateLimit(w http.ResponseWriter, r *http.Request, limiter *ipRateLimiter) bool {
