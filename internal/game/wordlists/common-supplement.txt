@@ -1,0 +1,17 @@
+# Common words missing from the frequency allowlist but valid in casual play.
+# Add user-reported words here, then: go run ./cmd/buildcommon
+brood
+gloom
+broom
+gloat
+bloat
+brace
+bead
+lend
+lent
+mend
+slack
+bleak
+pile
+wand
+bard

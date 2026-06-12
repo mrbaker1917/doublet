@@ -84,7 +84,7 @@ To rebuild the common dictionary from `words-large.txt`:
 go run ./cmd/buildcommon
 ```
 
-The common dictionary uses a known-word allowlist (`internal/game/wordlists/allowlist.txt`) plus bridge words from seed puzzle paths. Obscure entries can be blocked in `internal/game/suggestiondata/common-excluded.txt`.
+The common dictionary uses a known-word allowlist (`internal/game/wordlists/allowlist.txt`), a supplement list (`internal/game/wordlists/common-supplement.txt`), bridge words from seed puzzle paths, and neighbor expansion for well-connected playable words. Obscure entries can be blocked in `internal/game/suggestiondata/common-excluded.txt`.
 
 ## Dictionary Options for CLI:
 

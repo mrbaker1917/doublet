@@ -15,6 +15,7 @@ func main() {
 	source := flag.String("source", "words-large.txt", "full dictionary to filter")
 	output := flag.String("output", "words-common.txt", "output common-word list")
 	allowlist := flag.String("allowlist", "internal/game/wordlists/allowlist.txt", "known common English words")
+	supplement := flag.String("supplement", "internal/game/wordlists/common-supplement.txt", "extra common words not in the allowlist")
 	excluded := flag.String("excluded", "internal/game/suggestiondata/common-excluded.txt", "words to exclude from common")
 	extra := flag.String("extra", "words.txt", "extra words to always include")
 	seedsDir := flag.String("seeds", "internal/game/suggestiondata", "directory with *.seeds bridge pair files")
@@ -29,6 +30,12 @@ func main() {
 	allowed, err := loadWordList(*allowlist)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load allowlist: %v\n", err)
+		os.Exit(1)
+	}
+
+	supplementWords, err := loadWordList(*supplement)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "load supplement: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -55,6 +62,10 @@ func main() {
 	}
 
 	for word := range allowed {
+		addWord(word)
+	}
+
+	for word := range supplementWords {
 		addWord(word)
 	}
 
@@ -86,6 +97,8 @@ func main() {
 		}
 	}
 
+	expandCommonNeighbors(common, playable, blocked, addWord)
+
 	words := make([]string, 0, len(common))
 	for word := range common {
 		words = append(words, word)
@@ -111,8 +124,46 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("wrote %d common words to %s (from %d source words, %d allowlist words, %d seed pairs)\n",
-		len(words), *output, len(large), len(allowed), len(seedPairs))
+	fmt.Printf("wrote %d common words to %s (from %d source words, %d allowlist, %d supplement, %d seed pairs)\n",
+		len(words), *output, len(large), len(allowed), len(supplementWords), len(seedPairs))
+}
+
+// expandCommonNeighbors adds playable bridge words that connect to two or more words
+// already in the common dictionary.
+func expandCommonNeighbors(common, playable game.Dictionary, blocked map[string]struct{}, addWord func(string)) {
+	const minCommonNeighbors = 2
+
+	changed := true
+	for changed {
+		changed = false
+		for word := range playable {
+			if isBlocked(word, blocked) {
+				continue
+			}
+			if _, ok := common[word]; ok {
+				continue
+			}
+
+			neighbors := 0
+			for _, next := range game.Neighbors(playable, word) {
+				if _, ok := common[next]; ok {
+					neighbors++
+					if neighbors >= minCommonNeighbors {
+						break
+					}
+				}
+			}
+			if neighbors < minCommonNeighbors {
+				continue
+			}
+
+			before := len(common)
+			addWord(word)
+			if len(common) > before {
+				changed = true
+			}
+		}
+	}
 }
 
 func playableWords(large game.Dictionary) game.Dictionary {
