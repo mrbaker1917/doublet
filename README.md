@@ -2,8 +2,7 @@
 
 # Doublet (in Go)
 
-A CLI word game where you transform one word into another by changing one letter at a time.
-Each intermediate step must also be a valid dictionary word.
+A CLI and WEB word game where you transform one word into another by changing one letter at a time. Crucial: Each intermediate step must also be a valid dictionary word.
 
 ## Rules
 
@@ -34,6 +33,8 @@ go run ./cmd/web
 
 Then visit `http://localhost:8080` to play in the browser.
 
+## Security Measures
+
 Game state is kept in memory with bounds to limit resource use:
 
 - `-max-games` (default `2000`) — evicts the least recently used game when full
@@ -46,7 +47,7 @@ A background cleanup runs every 5 minutes to drop expired games.
 - `-max-concurrent-bfs` (default `4`) — caps simultaneous path searches; excess waits up to `-bfs-wait` (default `5s`) then returns HTTP 503
 - `-path-cache-size` (default `4096`) — caches shortest paths for repeated start/end pairs
 
-All JSON API routes are rate limited per IP (HTTP 429) using `-api-rate-window` (default `1m`; `-create-rate-window` is a deprecated alias):
+All JSON API routes are rate limited per IP (HTTP 429) using `-api-rate-window` (default `1m`):
 
 - `-create-rate-limit` (default `20`) — `POST /api/games`
 - `-move-rate-limit` (default `120`) — `POST /api/games/{id}/move`
@@ -56,9 +57,9 @@ JSON API bodies are capped at `-max-request-body` bytes (default `8192`); larger
 
 All responses include security headers: a strict Content-Security-Policy (same-origin scripts, styles, and API calls), clickjacking protection, `nosniff`, referrer and permissions policies, and HSTS on HTTPS (including behind Fly’s TLS terminator via `X-Forwarded-Proto`).
 
-The UI supports suggested doublets, custom start/target words, difficulty selection, move history, and win/lose feedback.
+The UI supports suggested doublets, custom start/target words, difficulty selection, move history, and win/lose feedback, hints, and restart.
 
-API endpoints:
+## API endpoints:
 
 - `POST /api/games` — start a game (`start`, `end`, `difficulty`, optional `max`)
 - `GET /api/games/{id}` — fetch game state
@@ -71,20 +72,7 @@ To regenerate suggestion pools after editing `internal/game/suggestiondata/*.see
 go run ./cmd/seedpairs
 ```
 
-## Deploy to Fly.io
-
-Requires a [Fly.io](https://fly.io) account and the [Fly CLI](https://fly.io/docs/hands-on/install-flyctl/).
-
-```bash
-fly auth login
-fly launch    # first time only; pick a unique app name if doublet is taken
-fly deploy
-fly open
-```
-
-The Docker image builds `cmd/web` and copies `web/`, `words.txt`, and `words-large.txt` into the container.
-
-## Dictionary Options
+## Dictionary Options for CLI:
 
 Use a built-in preset:
 
@@ -99,7 +87,7 @@ go run ./cmd/cli -dict mywords.txt -start cold -end warm -difficulty medium -sol
 
 When `-dict` is provided, it overrides `-lexicon`.
 
-## Difficulty Options
+## Difficulty Options for CLI:
 
 - `easy`: max changes = shortest path + scaled slack (`+1` for 1-step, `+2` for 2–4 steps, `+3` for 5+)
 - `medium`: max changes = shortest path + scaled slack (`+0` for 1-step, `+1` for 2–4 steps, `+2` for 5+)
@@ -118,5 +106,10 @@ go run ./cmd/cli -lexicon small -start cat -end dog -difficulty custom -max 3 -s
 During gameplay:
 
 - `/hint` shows the next step on the shortest path.
+- `/restart` starts the same game over from start word
 - `/solve` reveals the full shortest path.
 - `/quit` exits the game.
+- these are now also available as buttons on the web app
+- on web app, also available: `Give up?` button when you are really stuck.
+
+NB: currently deployed at `https://doublet.fly.dev/`

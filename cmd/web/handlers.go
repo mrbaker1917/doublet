@@ -41,6 +41,20 @@ type moveResponse struct {
 	SolutionPath []string `json:"solutionPath,omitempty"`
 }
 
+type hintResponse struct {
+	OK      bool   `json:"ok"`
+	Hint    string `json:"hint,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+type solveResponse struct {
+	OK           bool     `json:"ok"`
+	Lost         bool     `json:"lost"`
+	GaveUp       bool     `json:"gaveUp"`
+	Message      string   `json:"message,omitempty"`
+	SolutionPath []string `json:"solutionPath,omitempty"`
+}
+
 type suggestionsResponse struct {
 	Easy   [2]string `json:"easy"`
 	Medium [2]string `json:"medium"`
@@ -203,6 +217,115 @@ func (s *server) handleMove(w http.ResponseWriter, r *http.Request) {
 		resp.SolutionPath = outcome.game.SolutionPath
 	}
 	writeJSON(w, http.StatusOK, resp)
+}
+
+func (s *server) handleHint(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	if !s.requireRateLimit(w, r, s.moveLimiter) {
+		return
+	}
+
+	id := r.PathValue("id")
+	if id == "" {
+		writeError(w, http.StatusBadRequest, "invalid game id")
+		return
+	}
+
+	outcome, err := s.store.hint(id, s.dict)
+	if err != nil {
+		if errors.Is(err, errGameNotFound) {
+			writeError(w, http.StatusNotFound, "game not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to get hint")
+		return
+	}
+
+	if !outcome.ok {
+		writeJSON(w, http.StatusOK, hintResponse{
+			Message: outcome.message,
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, hintResponse{
+		OK:   true,
+		Hint: outcome.hint,
+	})
+}
+
+func (s *server) handleRestart(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	if !s.requireRateLimit(w, r, s.moveLimiter) {
+		return
+	}
+
+	id := r.PathValue("id")
+	if id == "" {
+		writeError(w, http.StatusBadRequest, "invalid game id")
+		return
+	}
+
+	g, err := s.store.restart(id)
+	if err != nil {
+		if errors.Is(err, errGameNotFound) {
+			writeError(w, http.StatusNotFound, "game not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to restart game")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, g)
+}
+
+func (s *server) handleSolve(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	if !s.requireRateLimit(w, r, s.moveLimiter) {
+		return
+	}
+
+	id := r.PathValue("id")
+	if id == "" {
+		writeError(w, http.StatusBadRequest, "invalid game id")
+		return
+	}
+
+	outcome, err := s.store.solve(id)
+	if err != nil {
+		if errors.Is(err, errGameNotFound) {
+			writeError(w, http.StatusNotFound, "game not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to reveal solution")
+		return
+	}
+
+	if !outcome.ok {
+		writeJSON(w, http.StatusOK, solveResponse{
+			Message: outcome.message,
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, solveResponse{
+		OK:           true,
+		Lost:         true,
+		GaveUp:       true,
+		SolutionPath: outcome.solutionPath,
+	})
 }
 
 func (s *server) handleGetGame(w http.ResponseWriter, r *http.Request) {

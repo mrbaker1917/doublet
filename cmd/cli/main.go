@@ -158,7 +158,7 @@ func playGame(dict game.Dictionary, start, end string, maxChanges int, solution 
 	fmt.Println("\nHere is your Doublet Challenge:")
 	fmt.Printf("turn %q into %q in at most %d changes\n", start, end, maxChanges)
 	fmt.Println("rules: change exactly one letter each move and keep valid words")
-	fmt.Println("commands: `/restart`, `/quit`")
+	fmt.Println("commands: `/hint`, `/solve`, `/restart`, `/quit`")
 
 	current := start
 	moves := 0
@@ -183,8 +183,21 @@ func playGame(dict game.Dictionary, start, end string, maxChanges int, solution 
 
 		switch next {
 		case "":
-			fmt.Println("Enter a word or type `/restart` to start over, `/quit` to exit")
+			fmt.Println("Enter a word or type `/hint`, `/solve`, `/restart`, or `/quit`")
 			continue
+		case "/hint":
+			if step, ok := game.HintNextStep(dict, current, end, solution); ok {
+				fmt.Printf("Hint: try %q\n", step)
+			} else if current == end {
+				fmt.Println("You are already at the target.")
+			} else {
+				fmt.Println("No hint available from current position.")
+			}
+			continue
+		case "/solve":
+			fmt.Println("SHORTEST PATH:")
+			printPath(solution)
+			return
 		case "/restart":
 			fmt.Println("Restarting round...")
 			current = start

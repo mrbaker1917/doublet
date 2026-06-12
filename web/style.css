@@ -112,10 +112,24 @@ select:focus {
 }
 
 .btn.secondary {
-  margin-top: 1rem;
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--accent);
+}
+
+.game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.game-actions .btn.secondary {
+  margin-top: 0;
+}
+
+#new-game-btn {
+  margin-top: 1rem;
 }
 
 .hint {
