@@ -41,7 +41,7 @@ body {
 
 .header-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
 }
@@ -50,8 +50,11 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+  margin-top: 0.85rem;
+  flex-shrink: 0;
   font-family: "Segoe UI", system-ui, sans-serif;
   font-size: 0.9rem;
+  line-height: 1;
   color: var(--muted);
   cursor: pointer;
   user-select: none;
@@ -61,6 +64,7 @@ body {
 .expert-toggle input {
   width: 1rem;
   height: 1rem;
+  margin: 0;
   accent-color: var(--accent);
   cursor: pointer;
 }
@@ -95,7 +99,7 @@ body {
   align-items: end;
 }
 
-label {
+.form label {
   display: grid;
   gap: 0.35rem;
   font-family: "Segoe UI", system-ui, sans-serif;
@@ -274,6 +278,14 @@ select:focus {
 }
 
 @media (max-width: 640px) {
+  .header-top {
+    align-items: center;
+  }
+
+  .expert-toggle {
+    margin-top: 0;
+  }
+
   .status-bar,
   .form.inline {
     grid-template-columns: 1fr;
