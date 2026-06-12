@@ -1,0 +1,10 @@
+# Offensive or inappropriate words excluded from generated suggestions
+bitch
+shit
+damn
+crap
+piss
+slut
+whore
+fuck
+cunt

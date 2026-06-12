@@ -16,7 +16,7 @@ func OneLetterApart(a, b string) bool {
 	return diff == 1
 }
 
-func neighbors(dict Dictionary, word string) []string {
+func Neighbors(dict Dictionary, word string) []string {
 	out := make([]string, 0, 16)
 	bytes := []byte(word)
 	for i := 0; i < len(bytes); i++ {
@@ -66,7 +66,7 @@ func ShortestPathBFS(dict Dictionary, start, end string, maxChanges int) ([]stri
 			continue
 		}
 
-		for _, nxt := range neighbors(dict, cur.word) {
+		for _, nxt := range Neighbors(dict, cur.word) {
 			if visited[nxt] {
 				continue
 			}

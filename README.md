@@ -63,7 +63,13 @@ API endpoints:
 - `POST /api/games` — start a game (`start`, `end`, `difficulty`, optional `max`)
 - `GET /api/games/{id}` — fetch game state
 - `POST /api/games/{id}/move` — submit a move (`word`)
-- `GET /api/suggestions` — random easy/medium/hard doublet pairs
+- `GET /api/suggestions` — random easy/medium/hard doublet pairs (pools of 200 / 150 / 80 validated pairs)
+
+To regenerate suggestion pools after editing `internal/game/suggestiondata/*.seeds`:
+
+```bash
+go run ./cmd/seedpairs
+```
 
 ## Deploy to Fly.io
 
