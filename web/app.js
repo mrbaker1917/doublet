@@ -14,8 +14,27 @@ const restartBtn = document.getElementById("restart-btn");
 const giveUpBtn = document.getElementById("give-up-btn");
 const solutionWrap = document.getElementById("solution-wrap");
 const solutionPath = document.getElementById("solution-path");
+const expertModeInput = document.getElementById("expert-mode");
+
+const EXPERT_MODE_KEY = "doublet-expert-mode";
 
 let activeGame = null;
+
+function isExpertMode() {
+  return expertModeInput.checked;
+}
+
+function loadExpertModePreference() {
+  expertModeInput.checked = localStorage.getItem(EXPERT_MODE_KEY) === "true";
+}
+
+function saveExpertModePreference() {
+  localStorage.setItem(EXPERT_MODE_KEY, isExpertMode() ? "true" : "false");
+}
+
+function setExpertModeEnabled(enabled) {
+  expertModeInput.disabled = !enabled;
+}
 
 function showError(el, message) {
   if (!message) {
@@ -67,7 +86,8 @@ async function api(path, options = {}) {
 
 async function loadSuggestions() {
   try {
-    const data = await api("/api/suggestions");
+    const query = isExpertMode() ? "?expert=true" : "";
+    const data = await api(`/api/suggestions${query}`);
     suggestionsEl.hidden = false;
 
     for (const button of suggestionsEl.querySelectorAll(".chip")) {
@@ -91,6 +111,8 @@ function showStartScreen() {
   activeGame = null;
   startScreen.hidden = false;
   gameScreen.hidden = true;
+  loadExpertModePreference();
+  setExpertModeEnabled(true);
   showError(startError, "");
   showMessage(moveMessage, "");
   showError(gameResult, "");
@@ -110,6 +132,8 @@ function showGameScreen(game) {
   activeGame = game;
   startScreen.hidden = true;
   gameScreen.hidden = false;
+  setExpertModeEnabled(false);
+  expertModeInput.checked = game.expert;
   showError(startError, "");
   showMessage(moveMessage, "");
   showError(gameResult, "");
@@ -167,6 +191,7 @@ startForm.addEventListener("submit", async (event) => {
     start: formData.get("start"),
     end: formData.get("end"),
     difficulty: formData.get("difficulty"),
+    expert: isExpertMode(),
   };
 
   if (payload.difficulty === "custom") {
@@ -300,4 +325,13 @@ giveUpBtn.addEventListener("click", async () => {
 
 newGameBtn.addEventListener("click", showStartScreen);
 
+expertModeInput.addEventListener("change", () => {
+  if (activeGame) {
+    return;
+  }
+  saveExpertModePreference();
+  loadSuggestions();
+});
+
+loadExpertModePreference();
 loadSuggestions();

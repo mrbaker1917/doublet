@@ -12,7 +12,7 @@ import (
 )
 
 func TestGameStoreEvictsExpiredGame(t *testing.T) {
-	store := newGameStoreWithCleanup(10, time.Millisecond, 0)
+	store := testGameStore(t, 10, time.Millisecond, 0)
 
 	created, err := store.create(&Game{
 		Start:      "cat",
@@ -33,7 +33,7 @@ func TestGameStoreEvictsExpiredGame(t *testing.T) {
 }
 
 func TestGameStoreRefreshesTTLOnAccess(t *testing.T) {
-	store := newGameStoreWithCleanup(10, 20*time.Millisecond, 0)
+	store := testGameStore(t, 10, 20*time.Millisecond, 0)
 
 	created, err := store.create(&Game{
 		Start:      "cat",
@@ -59,7 +59,7 @@ func TestGameStoreRefreshesTTLOnAccess(t *testing.T) {
 }
 
 func TestGameStoreEvictsOldestWhenFull(t *testing.T) {
-	store := newGameStoreWithCleanup(2, time.Hour, 0)
+	store := testGameStore(t, 2, time.Hour, 0)
 
 	first, err := store.create(&Game{Start: "cat", End: "dog", Difficulty: "easy", MaxChanges: 3})
 	if err != nil {
@@ -94,7 +94,7 @@ func TestGameStoreEvictsOldestWhenFull(t *testing.T) {
 }
 
 func TestGameStoreGetReturnsCopy(t *testing.T) {
-	store := newGameStoreWithCleanup(10, time.Hour, 0)
+	store := testGameStore(t, 10, time.Hour, 0)
 
 	created, err := store.create(&Game{
 		Start:        "cat",
@@ -130,16 +130,21 @@ func TestGameStoreGetReturnsCopy(t *testing.T) {
 
 func testDictionary(t *testing.T) game.Dictionary {
 	t.Helper()
-	dict, err := game.LoadDictionaryFromReader(strings.NewReader("cat\ncot\ncab\ndog\n"))
+	dict, err := game.LoadDictionaryFromReader(strings.NewReader("cat\ncot\ncab\ncog\ndog\n"))
 	if err != nil {
 		t.Fatalf("load dictionary: %v", err)
 	}
 	return dict
 }
 
-func TestGameStoreTryMoveRejectsStaleConcurrentMove(t *testing.T) {
-	store := newGameStoreWithCleanup(10, time.Hour, 0)
+func testGameStore(t *testing.T, maxGames int, ttl, cleanupInterval time.Duration) *gameStore {
+	t.Helper()
 	dict := testDictionary(t)
+	return newGameStoreWithCleanup(maxGames, ttl, cleanupInterval, dict, dict)
+}
+
+func TestGameStoreTryMoveRejectsStaleConcurrentMove(t *testing.T) {
+	store := testGameStore(t, 10, time.Hour, 0)
 
 	created, err := store.create(&Game{
 		Start:      "cat",
@@ -154,12 +159,12 @@ func TestGameStoreTryMoveRejectsStaleConcurrentMove(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	first, err := store.tryMove(created.ID, "cot", dict)
+	first, err := store.tryMove(created.ID, "cot")
 	if err != nil || !first.valid {
 		t.Fatalf("first move: valid=%v err=%v", first.valid, err)
 	}
 
-	second, err := store.tryMove(created.ID, "cab", dict)
+	second, err := store.tryMove(created.ID, "cab")
 	if err != nil {
 		t.Fatalf("second move: %v", err)
 	}
@@ -180,8 +185,7 @@ func TestGameStoreTryMoveRejectsStaleConcurrentMove(t *testing.T) {
 }
 
 func TestGameStoreConcurrentReadsAndMoves(t *testing.T) {
-	store := newGameStoreWithCleanup(100, time.Hour, 0)
-	dict := testDictionary(t)
+	store := testGameStore(t, 100, time.Hour, 0)
 
 	created, err := store.create(&Game{
 		Start:      "cat",
@@ -210,7 +214,7 @@ func TestGameStoreConcurrentReadsAndMoves(t *testing.T) {
 				}
 				_, _ = json.Marshal(g)
 
-				outcome, err := store.tryMove(created.ID, "cot", dict)
+				outcome, err := store.tryMove(created.ID, "cot")
 				if err == nil && outcome.valid {
 					_, _ = json.Marshal(outcome.game)
 				}
@@ -233,8 +237,7 @@ func TestGameStoreConcurrentReadsAndMoves(t *testing.T) {
 }
 
 func TestGameStoreRestartResetsProgress(t *testing.T) {
-	store := newGameStoreWithCleanup(10, time.Hour, 0)
-	dict := testDictionary(t)
+	store := testGameStore(t, 10, time.Hour, 0)
 
 	created, err := store.create(&Game{
 		Start:        "cat",
@@ -247,7 +250,7 @@ func TestGameStoreRestartResetsProgress(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	outcome, err := store.tryMove(created.ID, "cot", dict)
+	outcome, err := store.tryMove(created.ID, "cot")
 	if err != nil || !outcome.valid {
 		t.Fatalf("move: valid=%v err=%v", outcome.valid, err)
 	}
@@ -271,8 +274,7 @@ func TestGameStoreRestartResetsProgress(t *testing.T) {
 }
 
 func TestGameStoreHintReturnsNextStep(t *testing.T) {
-	store := newGameStoreWithCleanup(10, time.Hour, 0)
-	dict := testDictionary(t)
+	store := testGameStore(t, 10, time.Hour, 0)
 
 	created, err := store.create(&Game{
 		Start:        "cat",
@@ -285,7 +287,7 @@ func TestGameStoreHintReturnsNextStep(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	outcome, err := store.hint(created.ID, dict)
+	outcome, err := store.hint(created.ID)
 	if err != nil {
 		t.Fatalf("hint: %v", err)
 	}
@@ -295,11 +297,7 @@ func TestGameStoreHintReturnsNextStep(t *testing.T) {
 }
 
 func TestGameStoreHintRejectsFinishedGame(t *testing.T) {
-	store := newGameStoreWithCleanup(10, time.Hour, 0)
-	dict, err := game.LoadDictionaryFromReader(strings.NewReader("cat\ncot\ncog\ndog\n"))
-	if err != nil {
-		t.Fatalf("load dictionary: %v", err)
-	}
+	store := testGameStore(t, 10, time.Hour, 0)
 
 	created, err := store.create(&Game{
 		Start:        "cat",
@@ -313,13 +311,13 @@ func TestGameStoreHintRejectsFinishedGame(t *testing.T) {
 	}
 
 	for _, word := range []string{"cot", "cog", "dog"} {
-		outcome, err := store.tryMove(created.ID, word, dict)
+		outcome, err := store.tryMove(created.ID, word)
 		if err != nil || !outcome.valid {
 			t.Fatalf("move %q: valid=%v err=%v", word, outcome.valid, err)
 		}
 	}
 
-	outcome, err := store.hint(created.ID, dict)
+	outcome, err := store.hint(created.ID)
 	if err != nil {
 		t.Fatalf("hint: %v", err)
 	}
@@ -329,7 +327,7 @@ func TestGameStoreHintRejectsFinishedGame(t *testing.T) {
 }
 
 func TestGameStoreSolveRevealsPathAndEndsGame(t *testing.T) {
-	store := newGameStoreWithCleanup(10, time.Hour, 0)
+	store := testGameStore(t, 10, time.Hour, 0)
 
 	created, err := store.create(&Game{
 		Start:        "cat",

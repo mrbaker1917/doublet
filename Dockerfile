@@ -15,7 +15,7 @@ WORKDIR /app
 
 COPY --from=builder /app/server ./server
 COPY web/ ./web/
-COPY words.txt words-large.txt ./
+COPY words.txt words-common.txt words-large.txt ./
 
 EXPOSE 8080
 

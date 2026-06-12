@@ -1,0 +1,11 @@
+# Obscure or non-word entries kept out of the common dictionary.
+# Regenerate with: go run ./cmd/buildcommon
+fiot
+flot
+frot
+fict
+filt
+ryot
+ariot
+chiot
+sciot

@@ -57,26 +57,41 @@ JSON API bodies are capped at `-max-request-body` bytes (default `8192`); larger
 
 All responses include security headers: a strict Content-Security-Policy (same-origin scripts, styles, and API calls), clickjacking protection, `nosniff`, referrer and permissions policies, and HSTS on HTTPS (including behind Fly’s TLS terminator via `X-Forwarded-Proto`).
 
-The UI supports suggested doublets, custom start/target words, difficulty selection, move history, and win/lose feedback, hints, and restart.
+The UI supports suggested doublets, custom start/target words, difficulty selection, move history, win/lose feedback, hints, restart, and an **Expert mode** toggle (top right).
+
+- **Default:** common dictionary (`words-common.txt`) — 3–5 letter words without rare letters, suited for casual play.
+- **Expert mode:** full dictionary (`words-large.txt`) — allows obscure bridge words and longer vocabulary.
+
+Expert mode is chosen when a game starts and stays fixed for that game. The preference is saved in the browser.
 
 ## API endpoints:
 
-- `POST /api/games` — start a game (`start`, `end`, `difficulty`, optional `max`)
+- `POST /api/games` — start a game (`start`, `end`, `difficulty`, optional `max`, optional `expert`)
 - `GET /api/games/{id}` — fetch game state
 - `POST /api/games/{id}/move` — submit a move (`word`)
-- `GET /api/suggestions` — random easy/medium/hard doublet pairs (pools of 200 / 150 / 80 validated pairs)
+- `GET /api/suggestions` — random easy/medium/hard doublet pairs; add `?expert=true` for expert pools
 
-To regenerate suggestion pools after editing `internal/game/suggestiondata/*.seeds`:
+To regenerate suggestion pools after editing seed files in `internal/game/suggestiondata/`:
 
 ```bash
 go run ./cmd/seedpairs
+go run ./cmd/seedpairs -dict words-common.txt -pool common
 ```
+
+To rebuild the common dictionary from `words-large.txt`:
+
+```bash
+go run ./cmd/buildcommon
+```
+
+The common dictionary uses a known-word allowlist (`internal/game/wordlists/allowlist.txt`) plus bridge words from seed puzzle paths. Obscure entries can be blocked in `internal/game/suggestiondata/common-excluded.txt`.
 
 ## Dictionary Options for CLI:
 
 Use a built-in preset:
 
 - `-lexicon small` uses `words.txt`.
+- `-lexicon common` uses `words-common.txt` (3–5 letter casual words).
 - `-lexicon large` uses `words-large.txt` (default).
 
 Use your own dictionary file:

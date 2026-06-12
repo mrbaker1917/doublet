@@ -30,7 +30,7 @@ func main() {
 	if *startFlag == "" && *endFlag == "" {
 		fmt.Println("\n=== WELCOME TO DOUBLET ===")
 		fmt.Println("Here are some doublets to try:")
-		easy, medium, hard := game.GetSuggestedDoublets()
+		easy, medium, hard := game.GetSuggestedDoublets(true)
 		fmt.Printf("          %-10s %s\n", "start", "target")
 		fmt.Printf("          %-10s %s\n", "-----", "------")
 		fmt.Printf("  Easy:   %-10q → %q\n", easy[0], easy[1])
@@ -89,7 +89,7 @@ func main() {
 		if *startFlag == "" && *endFlag == "" {
 			fmt.Println("\n=== WELCOME TO DOUBLET ===")
 			fmt.Println("Here are some doublets to try:")
-			easy, medium, hard := game.GetSuggestedDoublets()
+			easy, medium, hard := game.GetSuggestedDoublets(true)
 			fmt.Printf("          %-10s %s\n", "start", "target")
 			fmt.Printf("          %-10s %s\n", "-----", "------")
 			fmt.Printf("  Easy:   %-10q → %q\n", easy[0], easy[1])

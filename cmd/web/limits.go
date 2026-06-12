@@ -120,12 +120,16 @@ func newPathCache(maxSize int) *pathCache {
 	}
 }
 
-func pathCacheKey(start, end string) string {
-	return start + "\x00" + end
+func pathCacheKey(start, end string, expert bool) string {
+	mode := "common"
+	if expert {
+		mode = "expert"
+	}
+	return mode + "\x00" + start + "\x00" + end
 }
 
-func (c *pathCache) get(start, end string) ([]string, bool, bool) {
-	key := pathCacheKey(start, end)
+func (c *pathCache) get(start, end string, expert bool) ([]string, bool, bool) {
+	key := pathCacheKey(start, end, expert)
 
 	c.mu.RLock()
 	entry, ok := c.entries[key]
@@ -139,8 +143,8 @@ func (c *pathCache) get(start, end string) ([]string, bool, bool) {
 	return path, entry.found, true
 }
 
-func (c *pathCache) put(start, end string, path []string, found bool) {
-	key := pathCacheKey(start, end)
+func (c *pathCache) put(start, end string, expert bool, path []string, found bool) {
+	key := pathCacheKey(start, end, expert)
 	stored := append([]string(nil), path...)
 
 	c.mu.Lock()

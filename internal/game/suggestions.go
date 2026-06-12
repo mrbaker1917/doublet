@@ -8,29 +8,46 @@ import (
 	"strings"
 )
 
-//go:embed suggestiondata/*.txt
+//go:embed suggestiondata/*.txt suggestiondata/common/*.txt
 var suggestionFiles embed.FS
 
+type suggestionPools struct {
+	easy   [][2]string
+	medium [][2]string
+	hard   [][2]string
+}
+
 var (
-	easyDoublets   [][2]string
-	mediumDoublets [][2]string
-	hardDoublets   [][2]string
+	expertSuggestions suggestionPools
+	commonSuggestions suggestionPools
 )
 
 func init() {
 	var err error
-	easyDoublets, err = loadSuggestionPairs("suggestiondata/easy.txt")
+	expertSuggestions, err = loadSuggestionPools("suggestiondata")
 	if err != nil {
-		panic("load easy suggestions: " + err.Error())
+		panic("load expert suggestions: " + err.Error())
 	}
-	mediumDoublets, err = loadSuggestionPairs("suggestiondata/medium.txt")
+	commonSuggestions, err = loadSuggestionPools("suggestiondata/common")
 	if err != nil {
-		panic("load medium suggestions: " + err.Error())
+		panic("load common suggestions: " + err.Error())
 	}
-	hardDoublets, err = loadSuggestionPairs("suggestiondata/hard.txt")
+}
+
+func loadSuggestionPools(dir string) (suggestionPools, error) {
+	easy, err := loadSuggestionPairs(dir + "/easy.txt")
 	if err != nil {
-		panic("load hard suggestions: " + err.Error())
+		return suggestionPools{}, err
 	}
+	medium, err := loadSuggestionPairs(dir + "/medium.txt")
+	if err != nil {
+		return suggestionPools{}, err
+	}
+	hard, err := loadSuggestionPairs(dir + "/hard.txt")
+	if err != nil {
+		return suggestionPools{}, err
+	}
+	return suggestionPools{easy: easy, medium: medium, hard: hard}, nil
 }
 
 func loadSuggestionPairs(path string) ([][2]string, error) {
@@ -71,8 +88,12 @@ func randIntn(n int) int {
 	return int(val.Int64())
 }
 
-func GetSuggestedDoublets() ([2]string, [2]string, [2]string) {
-	return easyDoublets[randIntn(len(easyDoublets))],
-		mediumDoublets[randIntn(len(mediumDoublets))],
-		hardDoublets[randIntn(len(hardDoublets))]
+func GetSuggestedDoublets(expert bool) ([2]string, [2]string, [2]string) {
+	pools := commonSuggestions
+	if expert {
+		pools = expertSuggestions
+	}
+	return pools.easy[randIntn(len(pools.easy))],
+		pools.medium[randIntn(len(pools.medium))],
+		pools.hard[randIntn(len(pools.hard))]
 }

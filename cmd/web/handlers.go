@@ -24,6 +24,7 @@ type createGameRequest struct {
 	End        string `json:"end"`
 	Difficulty string `json:"difficulty"`
 	Max        int    `json:"max"`
+	Expert     bool   `json:"expert"`
 }
 
 type moveRequest struct {
@@ -62,7 +63,8 @@ type suggestionsResponse struct {
 }
 
 type server struct {
-	dict           game.Dictionary
+	commonDict     game.Dictionary
+	expertDict     game.Dictionary
 	store          *gameStore
 	bfsGate        *bfsGate
 	createLimiter  *ipRateLimiter
@@ -73,6 +75,13 @@ type server struct {
 	maxRequestBody int64
 }
 
+func (s *server) dictFor(expert bool) game.Dictionary {
+	if expert {
+		return s.expertDict
+	}
+	return s.commonDict
+}
+
 func (s *server) requireRateLimit(w http.ResponseWriter, r *http.Request, limiter *ipRateLimiter) bool {
 	if !limiter.allow(clientIP(r)) {
 		writeError(w, http.StatusTooManyRequests, "too many requests, try again later")
@@ -81,18 +90,18 @@ func (s *server) requireRateLimit(w http.ResponseWriter, r *http.Request, limite
 	return true
 }
 
-func (s *server) shortestPath(start, end string) ([]string, bool, error) {
-	if path, found, ok := s.pathCache.get(start, end); ok {
+func (s *server) shortestPath(start, end string, expert bool) ([]string, bool, error) {
+	if path, found, ok := s.pathCache.get(start, end, expert); ok {
 		return path, found, nil
 	}
 
 	if !s.bfsGate.acquire(s.bfsWait) {
 		return nil, false, errBFSBusy
 	}
-	path, found := game.ShortestPathBFS(s.dict, start, end, 0)
+	path, found := game.ShortestPathBFS(s.dictFor(expert), start, end, 0)
 	s.bfsGate.release()
 
-	s.pathCache.put(start, end, path, found)
+	s.pathCache.put(start, end, expert, path, found)
 	return path, found, nil
 }
 
@@ -115,7 +124,9 @@ func (s *server) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 		difficulty = "medium"
 	}
 
-	if err := game.ValidateInputs(s.dict, start, end); err != nil {
+	dict := s.dictFor(req.Expert)
+
+	if err := game.ValidateInputs(dict, start, end); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -128,7 +139,7 @@ func (s *server) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortest, found, err := s.shortestPath(start, end)
+	shortest, found, err := s.shortestPath(start, end, req.Expert)
 	if errors.Is(err, errBFSBusy) {
 		writeError(w, http.StatusServiceUnavailable, "server busy, try again")
 		return
@@ -153,6 +164,7 @@ func (s *server) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 		End:          end,
 		Difficulty:   difficulty,
 		MaxChanges:   maxChanges,
+		Expert:       req.Expert,
 		SolutionPath: shortest,
 	})
 	if err != nil {
@@ -185,7 +197,7 @@ func (s *server) handleMove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	outcome, err := s.store.tryMove(id, req.Word, s.dict)
+	outcome, err := s.store.tryMove(id, req.Word)
 	if err != nil {
 		if errors.Is(err, errGameNotFound) {
 			writeError(w, http.StatusNotFound, "game not found")
@@ -235,7 +247,7 @@ func (s *server) handleHint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	outcome, err := s.store.hint(id, s.dict)
+	outcome, err := s.store.hint(id)
 	if err != nil {
 		if errors.Is(err, errGameNotFound) {
 			writeError(w, http.StatusNotFound, "game not found")
@@ -367,7 +379,8 @@ func (s *server) handleSuggestions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	easy, medium, hard := game.GetSuggestedDoublets()
+	expert := r.URL.Query().Get("expert") == "true"
+	easy, medium, hard := game.GetSuggestedDoublets(expert)
 	writeJSON(w, http.StatusOK, suggestionsResponse{
 		Easy:   easy,
 		Medium: medium,

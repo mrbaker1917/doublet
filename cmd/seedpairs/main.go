@@ -25,9 +25,17 @@ type bucket struct {
 func main() {
 	dictPath := flag.String("dict", "words-large.txt", "dictionary file")
 	outDir := flag.String("out", "internal/game/suggestiondata", "output directory for suggestion lists")
+	pool := flag.String("pool", "", "optional subdirectory under out (e.g. common)")
 	flag.Parse()
 
+	if *pool != "" {
+		*outDir = filepath.Join(*outDir, *pool)
+	}
+
 	blocked := loadBlocked(filepath.Join(*outDir, "blocked.txt"))
+	if len(blocked) == 0 {
+		blocked = loadBlocked(filepath.Join(filepath.Dir(*outDir), "blocked.txt"))
+	}
 
 	dict, err := game.LoadDictionary(*dictPath)
 	if err != nil {
@@ -40,6 +48,13 @@ func main() {
 		{wordLen: 4, minDist: 3, maxDist: 7, target: 150, maxUses: 5, outFile: "medium.txt", seedFile: "medium.seeds"},
 		{wordLen: 5, minDist: 5, maxDist: 12, target: 80, maxUses: 4, outFile: "hard.txt", seedFile: "hard.seeds"},
 	}
+	if *pool == "common" {
+		buckets = []bucket{
+			{wordLen: 3, minDist: 2, maxDist: 5, target: 200, maxUses: 6, outFile: "easy.txt", seedFile: "easy.seeds"},
+			{wordLen: 4, minDist: 3, maxDist: 7, target: 150, maxUses: 5, outFile: "medium.txt", seedFile: "medium.seeds"},
+			{wordLen: 5, minDist: 3, maxDist: 7, target: 50, maxUses: 4, outFile: "hard.txt", seedFile: "hard.seeds"},
+		}
+	}
 
 	if err := os.MkdirAll(*outDir, 0o755); err != nil {
 		fmt.Fprintf(os.Stderr, "mkdir: %v\n", err)
@@ -48,7 +63,10 @@ func main() {
 
 	for _, b := range buckets {
 		seeds := loadSeeds(filepath.Join(*outDir, b.seedFile))
-		pairs := collectPairs(dict, b, seeds, blocked)
+		if len(seeds) == 0 {
+			seeds = loadSeeds(filepath.Join(filepath.Dir(*outDir), b.seedFile))
+		}
+		pairs := collectPairs(dict, b, seeds, blocked, *pool == "common")
 		outPath := filepath.Join(*outDir, b.outFile)
 		if err := writePairs(outPath, pairs); err != nil {
 			fmt.Fprintf(os.Stderr, "write %s: %v\n", outPath, err)
@@ -101,8 +119,8 @@ func loadSeeds(path string) [][2]string {
 	return seeds
 }
 
-func collectPairs(dict game.Dictionary, b bucket, seeds [][2]string, blocked map[string]struct{}) [][2]string {
-	words := candidateWords(dict, b.wordLen, seeds, blocked)
+func collectPairs(dict game.Dictionary, b bucket, seeds [][2]string, blocked map[string]struct{}, relaxed bool) [][2]string {
+	words := candidateWords(dict, b.wordLen, seeds, blocked, relaxed)
 	if len(words) < 2 {
 		return nil
 	}
@@ -121,7 +139,7 @@ func collectPairs(dict game.Dictionary, b bucket, seeds [][2]string, blocked map
 		if isBlocked(start, blocked) || isBlocked(end, blocked) {
 			return false
 		}
-		if !isPlayableWord(start) || !isPlayableWord(end) {
+		if !game.IsPlayableWord(start) || !game.IsPlayableWord(end) {
 			return false
 		}
 		key := pairKey(start, end)
@@ -170,7 +188,17 @@ func collectPairs(dict game.Dictionary, b bucket, seeds [][2]string, blocked map
 	return pairs
 }
 
-func minNeighbors(wordLen int) int {
+func minNeighbors(wordLen int, relaxed bool) int {
+	if relaxed {
+		switch wordLen {
+		case 3:
+			return 8
+		case 4:
+			return 6
+		default:
+			return 4
+		}
+	}
 	switch wordLen {
 	case 3:
 		return 12
@@ -181,7 +209,7 @@ func minNeighbors(wordLen int) int {
 	}
 }
 
-func candidateWords(dict game.Dictionary, wordLen int, seeds [][2]string, blocked map[string]struct{}) []string {
+func candidateWords(dict game.Dictionary, wordLen int, seeds [][2]string, blocked map[string]struct{}, relaxed bool) []string {
 	candidates := make(map[string]struct{})
 
 	addWord := func(word string) {
@@ -206,10 +234,10 @@ func candidateWords(dict game.Dictionary, wordLen int, seeds [][2]string, blocke
 
 	words := make([]string, 0, len(candidates))
 	for word := range candidates {
-		if !isPlayableWord(word) || isBlocked(word, blocked) {
+		if !game.IsPlayableWord(word) || isBlocked(word, blocked) {
 			continue
 		}
-		if len(game.Neighbors(dict, word)) < minNeighbors(wordLen) {
+		if len(game.Neighbors(dict, word)) < minNeighbors(wordLen, relaxed) {
 			continue
 		}
 		words = append(words, word)
@@ -221,26 +249,6 @@ func candidateWords(dict game.Dictionary, wordLen int, seeds [][2]string, blocke
 func isBlocked(word string, blocked map[string]struct{}) bool {
 	_, ok := blocked[word]
 	return ok
-}
-
-func isPlayableWord(word string) bool {
-	if len(word) < 3 {
-		return false
-	}
-	hasVowel := false
-	for i := 0; i < len(word); i++ {
-		c := word[i]
-		if c < 'a' || c > 'z' {
-			return false
-		}
-		switch c {
-		case 'a', 'e', 'i', 'o', 'u':
-			hasVowel = true
-		case 'q', 'x', 'z', 'j', 'y':
-			return false
-		}
-	}
-	return hasVowel
 }
 
 func pairKey(a, b string) string {

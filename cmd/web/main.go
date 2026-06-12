@@ -13,8 +13,8 @@ import (
 )
 
 func main() {
-	dictPath := flag.String("dict", "", "path to newline-separated dictionary (overrides -lexicon)")
-	lexicon := flag.String("lexicon", "large", "dictionary preset: small or large")
+	dictPath := flag.String("dict", "", "path to expert dictionary (overrides -lexicon)")
+	lexicon := flag.String("lexicon", "large", "expert dictionary preset: small, common, or large")
 	port := flag.String("port", "", "listen port (overrides PORT env var)")
 	maxGames := flag.Int("max-games", defaultMaxGames, "maximum in-memory games before evicting least recently used")
 	gameTTL := flag.Duration("game-ttl", defaultGameTTL, "how long inactive games are kept (e.g. 24h, 30m)")
@@ -34,9 +34,9 @@ func main() {
 		rateWindow = *createRateWindow
 	}
 
-	dict, err := game.LoadDictionaryForFlags(*dictPath, *lexicon)
+	commonDict, expertDict, err := game.LoadWebDictionaries(*dictPath, *lexicon)
 	if err != nil {
-		log.Fatalf("failed to load dictionary: %v", err)
+		log.Fatalf("failed to load dictionaries: %v", err)
 	}
 
 	listenPort, err := resolveListenPort(*port)
@@ -45,8 +45,9 @@ func main() {
 	}
 
 	srv := &server{
-		dict:           dict,
-		store:          newGameStore(*maxGames, *gameTTL),
+		commonDict:     commonDict,
+		expertDict:     expertDict,
+		store:          newGameStore(*maxGames, *gameTTL, commonDict, expertDict),
 		bfsGate:        newBFSGate(*maxConcurrentBFS),
 		createLimiter:  newIPRateLimiter(*createRateLimit, rateWindow),
 		moveLimiter:    newIPRateLimiter(*moveRateLimit, rateWindow),
@@ -76,8 +77,8 @@ func main() {
 	}
 
 	log.Printf(
-		"doublet web server listening on port %s (max-games=%d game-ttl=%s api-rate=%d/%d/%d per %s max-concurrent-bfs=%d)",
-		listenPort, *maxGames, *gameTTL, *createRateLimit, *moveRateLimit, *readRateLimit, rateWindow, *maxConcurrentBFS,
+		"doublet web server listening on port %s (common=%d expert=%d max-games=%d game-ttl=%s api-rate=%d/%d/%d per %s max-concurrent-bfs=%d)",
+		listenPort, len(commonDict), len(expertDict), *maxGames, *gameTTL, *createRateLimit, *moveRateLimit, *readRateLimit, rateWindow, *maxConcurrentBFS,
 	)
 	if err := httpSrv.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)

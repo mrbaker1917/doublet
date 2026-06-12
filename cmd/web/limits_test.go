@@ -80,9 +80,9 @@ func TestBFSGateLimitsConcurrency(t *testing.T) {
 func TestPathCacheHitAvoidsRepeatLookup(t *testing.T) {
 	cache := newPathCache(10)
 
-	cache.put("cat", "dog", []string{"cat", "cot", "dog"}, true)
+	cache.put("cat", "dog", false, []string{"cat", "cot", "dog"}, true)
 
-	path, found, ok := cache.get("cat", "dog")
+	path, found, ok := cache.get("cat", "dog", false)
 	if !ok {
 		t.Fatal("expected cache hit")
 	}
@@ -91,7 +91,7 @@ func TestPathCacheHitAvoidsRepeatLookup(t *testing.T) {
 	}
 
 	path[0] = "mutated"
-	pathAgain, _, ok := cache.get("cat", "dog")
+	pathAgain, _, ok := cache.get("cat", "dog", false)
 	if !ok || pathAgain[0] != "cat" {
 		t.Fatalf("cache entry should not be mutated by caller: %v", pathAgain)
 	}
@@ -100,17 +100,17 @@ func TestPathCacheHitAvoidsRepeatLookup(t *testing.T) {
 func TestPathCacheEvictsOldestWhenFull(t *testing.T) {
 	cache := newPathCache(2)
 
-	cache.put("a", "b", []string{"a", "b"}, true)
-	cache.put("c", "d", []string{"c", "d"}, true)
-	cache.put("e", "f", []string{"e", "f"}, true)
+	cache.put("a", "b", false, []string{"a", "b"}, true)
+	cache.put("c", "d", false, []string{"c", "d"}, true)
+	cache.put("e", "f", false, []string{"e", "f"}, true)
 
-	if _, _, ok := cache.get("a", "b"); ok {
+	if _, _, ok := cache.get("a", "b", false); ok {
 		t.Fatal("oldest cache entry should be evicted")
 	}
-	if _, _, ok := cache.get("c", "d"); !ok {
+	if _, _, ok := cache.get("c", "d", false); !ok {
 		t.Fatal("middle cache entry should remain")
 	}
-	if _, _, ok := cache.get("e", "f"); !ok {
+	if _, _, ok := cache.get("e", "f", false); !ok {
 		t.Fatal("newest cache entry should remain")
 	}
 }

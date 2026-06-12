@@ -33,6 +33,7 @@ type Game struct {
 	MovesUsed    int      `json:"movesUsed"`
 	History      []string `json:"history"`
 	Status       string   `json:"status"`
+	Expert       bool     `json:"expert"`
 	SolutionPath []string `json:"-"`
 }
 
@@ -58,19 +59,21 @@ type gameStore struct {
 	maxGames        int
 	ttl             time.Duration
 	cleanupInterval time.Duration
+	commonDict      game.Dictionary
+	expertDict      game.Dictionary
 }
 
-func newGameStore(maxGames int, ttl time.Duration) *gameStore {
+func newGameStore(maxGames int, ttl time.Duration, commonDict, expertDict game.Dictionary) *gameStore {
 	if maxGames <= 0 {
 		maxGames = defaultMaxGames
 	}
 	if ttl <= 0 {
 		ttl = defaultGameTTL
 	}
-	return newGameStoreWithCleanup(maxGames, ttl, defaultCleanupInterval)
+	return newGameStoreWithCleanup(maxGames, ttl, defaultCleanupInterval, commonDict, expertDict)
 }
 
-func newGameStoreWithCleanup(maxGames int, ttl, cleanupInterval time.Duration) *gameStore {
+func newGameStoreWithCleanup(maxGames int, ttl, cleanupInterval time.Duration, commonDict, expertDict game.Dictionary) *gameStore {
 	if maxGames <= 0 {
 		maxGames = defaultMaxGames
 	}
@@ -83,6 +86,8 @@ func newGameStoreWithCleanup(maxGames int, ttl, cleanupInterval time.Duration) *
 		maxGames:        maxGames,
 		ttl:             ttl,
 		cleanupInterval: cleanupInterval,
+		commonDict:      commonDict,
+		expertDict:      expertDict,
 	}
 
 	if cleanupInterval > 0 {
@@ -142,6 +147,13 @@ func (s *gameStore) makeRoomLocked(now time.Time) {
 	}
 }
 
+func (s *gameStore) dictFor(g *Game) game.Dictionary {
+	if g.Expert {
+		return s.expertDict
+	}
+	return s.commonDict
+}
+
 func (s *gameStore) create(g *Game) (*Game, error) {
 	id, err := newGameID()
 	if err != nil {
@@ -157,6 +169,7 @@ func (s *gameStore) create(g *Game) (*Game, error) {
 			Current:      g.Start,
 			Difficulty:   g.Difficulty,
 			MaxChanges:   g.MaxChanges,
+			Expert:       g.Expert,
 			MovesUsed:    0,
 			History:      []string{g.Start},
 			Status:       gameStatusPlaying,
@@ -203,7 +216,7 @@ type moveOutcome struct {
 }
 
 // tryMove validates and applies a move under the store lock, returning a snapshot safe for JSON encoding.
-func (s *gameStore) tryMove(id, rawWord string, dict game.Dictionary) (moveOutcome, error) {
+func (s *gameStore) tryMove(id, rawWord string) (moveOutcome, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -219,6 +232,7 @@ func (s *gameStore) tryMove(id, rawWord string, dict game.Dictionary) (moveOutco
 	}
 
 	g := &sg.game
+	dict := s.dictFor(g)
 	if g.Status != gameStatusPlaying {
 		return moveOutcome{
 			valid:   false,
@@ -278,7 +292,7 @@ type hintOutcome struct {
 	message string
 }
 
-func (s *gameStore) hint(id string, dict game.Dictionary) (hintOutcome, error) {
+func (s *gameStore) hint(id string) (hintOutcome, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -294,6 +308,7 @@ func (s *gameStore) hint(id string, dict game.Dictionary) (hintOutcome, error) {
 	}
 
 	g := &sg.game
+	dict := s.dictFor(g)
 	if g.Status != gameStatusPlaying {
 		return hintOutcome{message: "game is already finished"}, nil
 	}
