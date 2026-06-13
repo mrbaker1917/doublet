@@ -2,16 +2,16 @@
 
 # Doublet (in Go)
 
-A CLI and WEB word game where you transform one word into another by changing one letter at a time. Crucial: Each intermediate step must also be a valid dictionary word.
+A CLI and WEB word game where you transform one word into another by changing one letter at a time. Each intermediate step must also be a valid dictionary word.
 
 ## Rules
 
-- Start and target must be the same length.
+- Start and target words must be the same length.
 - Each move must change exactly one letter.
 - Every move must produce a valid word.
-- You must stay within the allowed max changes.
+- You must stay within the allowed maximum changes.
 
-## Run
+## Run CLI
 
 ```bash
 go run ./cmd/cli
