@@ -12,6 +12,7 @@ const newGameBtn = document.getElementById("new-game-btn");
 const hintBtn = document.getElementById("hint-btn");
 const restartBtn = document.getElementById("restart-btn");
 const giveUpBtn = document.getElementById("give-up-btn");
+const solutionTitle = document.getElementById("solution-title");
 const solutionWrap = document.getElementById("solution-wrap");
 const solutionPath = document.getElementById("solution-path");
 const expertModeInput = document.getElementById("expert-mode");
@@ -162,6 +163,11 @@ function finishGame(result) {
     gameResult.hidden = false;
     gameResult.className = "result";
     gameResult.textContent = "Congratulations! You solved the doublet.";
+    if (result.solutionPath?.length) {
+      solutionTitle.textContent = "Another valid path";
+      solutionWrap.hidden = false;
+      solutionPath.textContent = formatHistory(result.solutionPath);
+    }
     return;
   }
 
@@ -172,6 +178,7 @@ function finishGame(result) {
       ? "You gave up. Here's the shortest path."
       : "No moves left. Better luck next time.";
     if (result.solutionPath?.length) {
+      solutionTitle.textContent = "One valid path";
       solutionWrap.hidden = false;
       solutionPath.textContent = formatHistory(result.solutionPath);
     }
