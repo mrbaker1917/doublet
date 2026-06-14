@@ -36,6 +36,12 @@ func main() {
 	if len(blocked) == 0 {
 		blocked = loadBlocked(filepath.Join(filepath.Dir(*outDir), "blocked.txt"))
 	}
+	if *pool == "common" {
+		excludedPath := filepath.Join(filepath.Dir(*outDir), "common-excluded.txt")
+		for word := range loadBlocked(excludedPath) {
+			blocked[word] = struct{}{}
+		}
+	}
 
 	dict, err := game.LoadDictionary(*dictPath)
 	if err != nil {
@@ -153,6 +159,11 @@ func collectPairs(dict game.Dictionary, b bucket, seeds [][2]string, blocked map
 		if !ok {
 			return false
 		}
+		for _, word := range path {
+			if isBlocked(word, blocked) {
+				return false
+			}
+		}
 		dist := len(path) - 1
 		if dist < b.minDist || dist > b.maxDist {
 			return false
@@ -221,14 +232,18 @@ func candidateWords(dict game.Dictionary, wordLen int, seeds [][2]string, blocke
 
 	for _, pair := range seeds {
 		for _, word := range pair {
-			addWord(word)
+			if !isBlocked(word, blocked) {
+				addWord(word)
+			}
 		}
 		path, ok := game.ShortestPathBFS(dict, pair[0], pair[1], 0)
 		if !ok {
 			continue
 		}
 		for _, word := range path {
-			addWord(word)
+			if !isBlocked(word, blocked) {
+				addWord(word)
+			}
 		}
 	}
 
