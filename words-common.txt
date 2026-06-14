@@ -1166,7 +1166,6 @@ bails
 bain
 bais
 bait
-baith
 baits
 baka
 bakal
@@ -3393,7 +3392,6 @@ crag
 crags
 craie
 craig
-crain
 crake
 cram
 cramp
@@ -3950,7 +3948,6 @@ desi
 desk
 desks
 dess
-det
 detar
 detat
 detd
@@ -13680,7 +13677,6 @@ spait
 spak
 spake
 spald
-spale
 spall
 spalt
 spam
