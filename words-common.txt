@@ -429,7 +429,6 @@ alhet
 alia
 alias
 alice
-alick
 alids
 alien
 aliet
@@ -2071,7 +2070,6 @@ braws
 bread
 break
 bream
-breck
 bred
 brede
 bredi
@@ -4915,7 +4913,6 @@ famp
 fan
 fana
 fanal
-fand
 fane
 fanes
 fang
