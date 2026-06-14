@@ -228,6 +228,16 @@ func (s *server) handleMove(w http.ResponseWriter, r *http.Request) {
 	if outcome.lost {
 		resp.SolutionPath = outcome.game.SolutionPath
 	}
+	if outcome.won {
+		if alt, ok := game.AnotherValidPath(
+			s.dictFor(outcome.game.Expert),
+			outcome.game.Start,
+			outcome.game.End,
+			outcome.game.History,
+		); ok {
+			resp.SolutionPath = alt
+		}
+	}
 	writeJSON(w, http.StatusOK, resp)
 }
 
