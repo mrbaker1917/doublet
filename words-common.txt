@@ -1497,7 +1497,6 @@ bench
 bend
 benda
 bends
-bene
 benes
 benet
 beng
@@ -2629,7 +2628,6 @@ cells
 celt
 celts
 cen
-cene
 cense
 cent
 centi
@@ -2674,7 +2672,6 @@ chaa
 chab
 chac
 chace
-chack
 chaco
 chad
 chads
@@ -2755,7 +2752,6 @@ cheng
 cher
 chera
 chere
-chert
 chese
 chess
 chest
@@ -3399,7 +3395,6 @@ crag
 crags
 craie
 craig
-craik
 crain
 crake
 cram
@@ -4355,7 +4350,6 @@ dreck
 dree
 dreed
 dreep
-drees
 dreg
 dregs
 drek
@@ -6321,8 +6315,6 @@ grows
 grub
 grubs
 grue
-gruel
-grues
 gruf
 gruff
 gruft
@@ -8188,7 +8180,6 @@ leper
 lepid
 lepus
 ler
-lere
 lerp
 les
 lese
@@ -9154,12 +9145,10 @@ micra
 micro
 mid
 midas
-mide
 mider
 midge
 midi
 midis
-midn
 mids
 miek
 mien
@@ -13331,7 +13320,6 @@ slit
 slite
 slits
 slive
-sloat
 slob
 slobs
 slock
@@ -13968,7 +13956,6 @@ stite
 stith
 stive
 stoa
-stoae
 stoai
 stoas
 stoat
@@ -14286,7 +14273,6 @@ swum
 swung
 swure
 taa
-taal
 taar
 tab
 tabel
@@ -14942,7 +14928,6 @@ toil
 toile
 toils
 toise
-toist
 toit
 toits
 toke
@@ -15150,7 +15135,6 @@ trend
 trent
 tres
 tress
-trest
 tret
 trets
 trews
