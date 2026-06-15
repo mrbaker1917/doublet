@@ -1852,7 +1852,6 @@ boil
 boils
 boing
 bois
-boise
 boist
 boite
 boke
@@ -2176,7 +2175,6 @@ brusk
 brut
 bruta
 brute
-btise
 btu
 bual
 buat
@@ -3254,7 +3252,6 @@ coop
 coops
 coopt
 coos
-coost
 coot
 cooth
 coots
@@ -3416,7 +3413,6 @@ craws
 crcao
 cre
 crea
-cread
 creak
 cream
 creat
@@ -3486,7 +3482,6 @@ crore
 crosa
 crose
 cross
-crost
 croup
 crout
 crow
@@ -4343,8 +4338,6 @@ dream
 drear
 dreck
 dree
-dreed
-dreep
 dreg
 dregs
 drek
@@ -6019,7 +6012,6 @@ glor
 glore
 glos
 gloss
-glost
 glout
 glove
 glow
@@ -6233,7 +6225,6 @@ gree
 greed
 greek
 green
-grees
 greet
 greg
 grege
@@ -8176,7 +8167,6 @@ lepus
 ler
 lerp
 les
-lese
 less
 lest
 leste
@@ -8533,7 +8523,6 @@ lota
 lotah
 lotan
 lotas
-lote
 loth
 lotic
 loto
@@ -13286,7 +13275,6 @@ sleek
 sleep
 sleer
 sleet
-slent
 slept
 slete
 slew
