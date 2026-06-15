@@ -3422,9 +3422,7 @@ creed
 creek
 creel
 creem
-creen
 creep
-crees
 creme
 crena
 crepe
@@ -5253,7 +5251,6 @@ flies
 fling
 flint
 flip
-flipe
 flips
 flirt
 flisk
@@ -6884,7 +6881,6 @@ hohn
 hoho
 hoi
 hoin
-hoise
 hoist
 hoit
 hokan
@@ -13293,10 +13289,8 @@ sline
 sling
 slink
 slip
-slipe
 slips
 slipt
-slirt
 slish
 slit
 slite
@@ -13317,7 +13311,6 @@ slonk
 sloo
 sloom
 sloop
-sloot
 slop
 slope
 slops
@@ -13966,12 +13959,9 @@ stook
 stool
 stoon
 stoop
-stoot
 stop
 stopa
-stope
 stops
-stopt
 stor
 store
 stork
