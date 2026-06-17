@@ -2351,7 +2351,6 @@ cacks
 cad
 cade
 cadee
-cader
 cades
 cadet
 cadew
@@ -3271,7 +3270,6 @@ copps
 copr
 copra
 cops
-copse
 copt
 copus
 cor
@@ -3285,7 +3283,6 @@ cord
 cords
 core
 cored
-coree
 corer
 cores
 corf
@@ -3308,7 +3305,6 @@ corpl
 corpn
 corps
 corr
-corse
 corso
 cort
 corta
@@ -3415,7 +3411,6 @@ cre
 crea
 creak
 cream
-creat
 creda
 cree
 creed
@@ -6749,7 +6744,6 @@ heros
 herp
 herr
 hers
-herse
 hert
 herve
 hes
@@ -9029,7 +9023,6 @@ meo
 mer
 merat
 merc
-merce
 merch
 merci
 merd
@@ -9049,7 +9042,6 @@ merle
 merls
 mero
 meros
-merse
 merv
 mes
 mesa
@@ -10300,7 +10292,6 @@ oses
 osi
 osse
 osset
-otate
 otc
 other
 otis
@@ -10331,7 +10322,6 @@ outs
 ova
 oval
 ovant
-ovate
 oven
 ovens
 over
@@ -12942,7 +12932,6 @@ short
 shot
 shote
 shots
-shott
 shou
 shout
 shove
@@ -15549,7 +15538,6 @@ utter
 utu
 uva
 uval
-uvate
 uvea
 uvic
 uvid
@@ -16180,7 +16168,6 @@ whift
 whig
 whigs
 while
-whilk
 whill
 whils
 whim
@@ -16226,7 +16213,6 @@ whse
 whsle
 whud
 whuff
-whulk
 whump
 whun
 whup
