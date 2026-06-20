@@ -5472,7 +5472,6 @@ friss
 frist
 frit
 frith
-frits
 fritt
 fro
 frock
@@ -5949,10 +5948,7 @@ glee
 gleed
 gleen
 glees
-gleet
 gleg
-gleir
-gleit
 glen
 glene
 glenn
@@ -6208,8 +6204,6 @@ green
 greet
 greg
 grege
-grein
-greit
 grene
 gres
 gret
@@ -12625,9 +12619,7 @@ sei
 seid
 seif
 seige
-seine
 seis
-seise
 seit
 sekar
 seker
@@ -12804,7 +12796,6 @@ sheal
 shean
 shear
 sheas
-sheat
 shed
 sheds
 shee
@@ -13236,7 +13227,6 @@ slavs
 slaw
 slaws
 sleb
-sleck
 sled
 sleds
 slee
@@ -14497,7 +14487,6 @@ tega
 tegg
 tegs
 teil
-teise
 tel
 tela
 telar
@@ -14865,7 +14854,6 @@ toi
 toil
 toile
 toils
-toise
 toit
 toits
 toke
@@ -15061,7 +15049,6 @@ treas
 treat
 tree
 treed
-treen
 trees
 tref
 trefa
@@ -16135,7 +16122,6 @@ whets
 whew
 whewl
 whews
-whewt
 which
 whick
 whid
