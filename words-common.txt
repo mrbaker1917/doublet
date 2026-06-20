@@ -1717,7 +1717,6 @@ blase
 blash
 blast
 blat
-blate
 blats
 blaw
 blawn
@@ -2783,7 +2782,6 @@ chimp
 chimu
 chin
 china
-chine
 ching
 chink
 chino
@@ -3022,7 +3020,6 @@ clong
 clonk
 clons
 cloof
-cloop
 cloot
 clop
 clops
@@ -5289,7 +5286,6 @@ flub
 flubs
 flue
 flued
-fluer
 flues
 fluff
 fluid
@@ -5298,9 +5294,6 @@ flume
 flump
 flung
 flunk
-fluor
-flurn
-flurr
 flurt
 flus
 flush
@@ -5434,7 +5427,6 @@ frape
 frapp
 fraps
 frase
-frass
 frat
 frate
 frats
@@ -5442,14 +5434,12 @@ frau
 fraud
 fraus
 frawn
-frden
 freak
 fream
 freck
 fred
 free
 freed
-freen
 freer
 frees
 freet
@@ -5461,7 +5451,6 @@ fren
 frena
 frere
 fresh
-fress
 fret
 frets
 frett
@@ -5958,7 +5947,6 @@ glede
 gleds
 glee
 gleed
-gleek
 gleen
 glees
 gleet
@@ -7866,7 +7854,6 @@ lace
 laced
 lacer
 laces
-lacet
 lache
 lacis
 lack
@@ -8204,11 +8191,8 @@ libre
 libri
 libs
 lice
-licet
 lich
 lichi
-licht
-licit
 lick
 licks
 lid
@@ -13258,7 +13242,6 @@ sleds
 slee
 sleek
 sleep
-sleer
 sleet
 slept
 slete
@@ -13317,7 +13300,6 @@ slubs
 slud
 slue
 slued
-sluer
 slues
 sluff
 slug
@@ -13853,7 +13835,6 @@ steam
 stean
 stech
 steed
-steek
 steel
 steem
 steen
@@ -13879,7 +13860,6 @@ stept
 ster
 stere
 steri
-sterk
 stern
 stero
 stert
@@ -14185,7 +14165,6 @@ sweal
 swear
 sweat
 sweep
-sweer
 sweet
 swell
 swelp
@@ -14197,7 +14176,6 @@ swick
 swift
 swig
 swigs
-swile
 swill
 swim
 swims
@@ -15057,7 +15035,6 @@ trad
 trade
 trag
 trah
-traik
 trail
 train
 trait
