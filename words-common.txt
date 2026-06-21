@@ -1625,7 +1625,6 @@ binal
 bind
 bindi
 binds
-bine
 bines
 bing
 binge
@@ -1668,10 +1667,8 @@ birse
 birt
 birth
 bis
-bise
 bises
 biset
-bish
 bisk
 bisks
 bison
@@ -5435,7 +5432,6 @@ fraud
 fraus
 frawn
 freak
-fream
 freck
 fred
 free
@@ -11178,7 +11174,6 @@ pre
 prec
 pred
 pree
-preed
 preen
 prees
 pref
