@@ -5,11 +5,19 @@
   --muted: #5f6b76;
   --accent: #0f6b5c;
   --accent-dark: #0a4f44;
+  --accent-soft: #e8f3ef;
   --target: #b45309;
+  --target-soft: #fef3c7;
+  --changed: #1d4ed8;
+  --changed-soft: #dbeafe;
   --error: #b42318;
   --ok: #166534;
+  --ok-soft: #dcfce7;
   --border: #d9d0c3;
+  --tile-border: #c4b8a8;
   --shadow: 0 12px 30px rgba(31, 41, 51, 0.08);
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-sans: "Segoe UI", system-ui, sans-serif;
 }
 
 * {
@@ -19,7 +27,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   color: var(--ink);
   background:
     radial-gradient(circle at top left, #e8f3ef 0, transparent 45%),
@@ -30,49 +38,108 @@ body {
 .app {
   max-width: 720px;
   margin: 0 auto;
-  padding: 2.5rem 1.25rem 3rem;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 2.75rem;
-  letter-spacing: 0.04em;
+  padding: 2rem 1.25rem 3rem;
 }
 
 .header-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
-.expert-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin-top: 0.85rem;
-  flex-shrink: 0;
-  font-family: "Segoe UI", system-ui, sans-serif;
-  font-size: 0.9rem;
-  line-height: 1;
-  color: var(--muted);
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-}
-
-.expert-toggle input {
-  width: 1rem;
-  height: 1rem;
+.brand h1 {
   margin: 0;
-  accent-color: var(--accent);
-  cursor: pointer;
+  font-size: 2.75rem;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
 }
 
 .tagline {
-  margin: 0.5rem 0 2rem;
+  margin: 0.45rem 0 0;
+  max-width: 28rem;
   color: var(--muted);
-  font-family: "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.mode-hint {
+  margin: 0.65rem 0 1.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.mode-switch {
+  position: relative;
+  margin-top: 0.5rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mode-switch-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.mode-switch-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  width: 9.5rem;
+  padding: 0.2rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #f7f3ec;
+}
+
+.mode-switch-thumb {
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  width: calc(50% - 0.2rem);
+  height: calc(100% - 0.4rem);
+  border-radius: 999px;
+  background: var(--accent);
+  transition: transform 0.2s ease;
+}
+
+.mode-switch-input:checked + .mode-switch-track .mode-switch-thumb {
+  transform: translateX(100%);
+}
+
+.mode-switch-label {
+  position: relative;
+  z-index: 1;
+  padding: 0.35rem 0;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.mode-switch-input:not(:checked) + .mode-switch-track .mode-switch-label--left,
+.mode-switch-input:checked + .mode-switch-track .mode-switch-label--right {
+  color: #fff;
+}
+
+.mode-switch-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .panel {
@@ -81,6 +148,23 @@ body {
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: var(--shadow);
+  animation: panel-in 0.35s ease;
+}
+
+.panel--game.panel--won {
+  border-color: #86efac;
+  box-shadow: 0 12px 30px rgba(22, 101, 52, 0.12);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .panel h2,
@@ -102,7 +186,7 @@ body {
 .form label {
   display: grid;
   gap: 0.35rem;
-  font-family: "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.9rem;
   color: var(--muted);
 }
@@ -113,7 +197,7 @@ select {
   padding: 0.7rem 0.85rem;
   border: 1px solid var(--border);
   border-radius: 10px;
-  font: 1rem/1.2 "Segoe UI", system-ui, sans-serif;
+  font: 1rem/1.2 var(--font-sans);
   color: var(--ink);
   background: #fff;
 }
@@ -128,8 +212,13 @@ select:focus {
   border: none;
   border-radius: 10px;
   padding: 0.75rem 1.1rem;
-  font: 600 0.95rem/1 "Segoe UI", system-ui, sans-serif;
+  font: 600 0.95rem/1 var(--font-sans);
   cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
 }
 
 .btn.primary {
@@ -147,48 +236,64 @@ select:focus {
   border: 1px solid var(--accent);
 }
 
-.game-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-}
-
-.game-actions .btn.secondary {
-  margin-top: 0;
-}
-
-#new-game-btn {
-  margin-top: 1rem;
+.btn.secondary:hover {
+  background: var(--accent-soft);
 }
 
 .hint {
   margin: 0 0 0.75rem;
   color: var(--muted);
-  font-family: "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.9rem;
 }
 
 .suggestion-row {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.65rem;
   margin-bottom: 1.25rem;
 }
 
 .chip {
+  display: grid;
+  gap: 0.2rem;
   text-align: left;
-  padding: 0.7rem 0.9rem;
-  border: 1px dashed var(--border);
-  border-radius: 10px;
+  padding: 0.75rem 0.95rem;
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 12px;
   background: #faf7f1;
   color: var(--ink);
-  font: 0.95rem/1.3 "Segoe UI", system-ui, sans-serif;
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.chip--easy {
+  border-left-color: #059669;
+}
+
+.chip--medium {
+  border-left-color: #d97706;
+}
+
+.chip--hard {
+  border-left-color: #dc2626;
 }
 
 .chip:hover {
+  background: var(--accent-soft);
   border-color: var(--accent);
-  background: #eef7f4;
+}
+
+.chip-level {
+  font: 600 0.75rem/1 var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.chip-pair {
+  font: 1.05rem/1.3 var(--font-serif);
+  letter-spacing: 0.04em;
 }
 
 .status-bar {
@@ -205,20 +310,11 @@ select:focus {
   text-align: center;
 }
 
-.label {
-  display: block;
-  margin-bottom: 0.35rem;
-  font-family: "Segoe UI", system-ui, sans-serif;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
 .word {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 0.06em;
+  text-transform: lowercase;
 }
 
 .word.target {
@@ -238,16 +334,46 @@ select:focus {
   word-break: break-word;
 }
 
+.history-wrap {
+  margin-bottom: 1.25rem;
+}
+
+.history-wrap h3 {
+  margin: 0 0 0.5rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+#new-game-btn {
+  margin-top: 1rem;
+  width: 100%;
+}
+
 .error {
   margin: 1rem 0 0;
   color: var(--error);
-  font-family: "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 
 .message {
   margin: 0.75rem 0 0;
   color: var(--error);
-  font-family: "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 
 .message.ok {
@@ -256,13 +382,18 @@ select:focus {
 
 .result {
   margin: 1rem 0 0;
-  font-size: 1.1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-size: 1.05rem;
   font-weight: 700;
+  font-family: var(--font-sans);
   color: var(--ok);
+  background: var(--ok-soft);
 }
 
 .result.lost {
   color: var(--error);
+  background: #fee2e2;
 }
 
 .solution-wrap {
@@ -272,9 +403,29 @@ select:focus {
 }
 
 .solution-wrap h3 {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.75rem;
   font-size: 1rem;
   color: var(--muted);
+  font-family: var(--font-sans);
+}
+
+.form.shake {
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
 }
 
 @media (max-width: 640px) {
@@ -282,7 +433,11 @@ select:focus {
     align-items: center;
   }
 
-  .expert-toggle {
+  .brand h1 {
+    font-size: 2.25rem;
+  }
+
+  .mode-switch {
     margin-top: 0;
   }
 

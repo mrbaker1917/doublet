@@ -11,13 +11,21 @@
   <main class="app">
     <header class="header">
       <div class="header-top">
-        <h1>Doublet</h1>
-        <label class="expert-toggle" title="Allow obscure dictionary words">
-          <input id="expert-mode" type="checkbox">
-          <span>Expert mode</span>
+        <div class="brand">
+          <h1>Doublet</h1>
+          <p class="tagline">Change one letter at a time. Every step must be a real word.</p>
+        </div>
+        <label class="mode-switch" title="Expert mode allows obscure dictionary words">
+          <input id="expert-mode" type="checkbox" class="mode-switch-input">
+          <span class="mode-switch-track" aria-hidden="true">
+            <span class="mode-switch-thumb"></span>
+            <span class="mode-switch-label mode-switch-label--left">Casual</span>
+            <span class="mode-switch-label mode-switch-label--right">Expert</span>
+          </span>
+          <span class="mode-switch-sr">Expert mode</span>
         </label>
       </div>
-      <p class="tagline">Change one letter at a time. Every step must be a real word.</p>
+      <p id="mode-hint" class="mode-hint">Common words only</p>
     </header>
 
     <section id="start-screen" class="panel">
@@ -26,9 +34,18 @@
       <div id="suggestions" class="suggestions" hidden>
         <p class="hint">Try one of these:</p>
         <div class="suggestion-row">
-          <button type="button" class="chip" data-level="easy"></button>
-          <button type="button" class="chip" data-level="medium"></button>
-          <button type="button" class="chip" data-level="hard"></button>
+          <button type="button" class="chip chip--easy" data-level="easy">
+            <span class="chip-level">Easy</span>
+            <span class="chip-pair"></span>
+          </button>
+          <button type="button" class="chip chip--medium" data-level="medium">
+            <span class="chip-level">Medium</span>
+            <span class="chip-pair"></span>
+          </button>
+          <button type="button" class="chip chip--hard" data-level="hard">
+            <span class="chip-level">Hard</span>
+            <span class="chip-pair"></span>
+          </button>
         </div>
       </div>
 
@@ -44,9 +61,9 @@
         <label>
           Difficulty
           <select id="difficulty-input" name="difficulty">
-            <option value="easy">Easy (scaled slack)</option>
-            <option value="medium" selected>Medium (scaled slack)</option>
-            <option value="hard">Hard (shortest only)</option>
+            <option value="easy">Easy · extra moves allowed</option>
+            <option value="medium" selected>Medium · a little slack</option>
+            <option value="hard">Hard · shortest path only</option>
             <option value="custom">Custom</option>
           </select>
         </label>
@@ -59,7 +76,7 @@
       <p id="start-error" class="error" role="alert" hidden></p>
     </section>
 
-    <section id="game-screen" class="panel" hidden>
+    <section id="game-screen" class="panel panel--game" hidden>
       <div class="status-bar">
         <div class="status-item">
           <span class="label">Current</span>
@@ -90,16 +107,16 @@
       <div class="game-actions">
         <button id="hint-btn" type="button" class="btn secondary">Hint</button>
         <button id="restart-btn" type="button" class="btn secondary">Restart</button>
-        <button id="give-up-btn" type="button" class="btn secondary">Give up?</button>
+        <button id="give-up-btn" type="button" class="btn secondary">Show solution</button>
       </div>
       <p id="move-message" class="message" role="status" hidden></p>
       <p id="game-result" class="result" role="status" hidden></p>
       <div id="solution-wrap" class="solution-wrap" hidden>
-        <h3 id="solution-title">One valid path</h3>
+        <h3 id="solution-title">Shortest path</h3>
         <p id="solution-path" class="history"></p>
       </div>
 
-      <button id="new-game-btn" type="button" class="btn secondary" hidden>New game</button>
+      <button id="new-game-btn" type="button" class="btn primary" hidden>Play again</button>
     </section>
   </main>
 

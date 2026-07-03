@@ -16,6 +16,8 @@ const solutionTitle = document.getElementById("solution-title");
 const solutionWrap = document.getElementById("solution-wrap");
 const solutionPath = document.getElementById("solution-path");
 const expertModeInput = document.getElementById("expert-mode");
+const modeHint = document.getElementById("mode-hint");
+const moveInput = document.getElementById("move-input");
 
 const EXPERT_MODE_KEY = "doublet-expert-mode";
 
@@ -27,10 +29,18 @@ function isExpertMode() {
 
 function loadExpertModePreference() {
   expertModeInput.checked = localStorage.getItem(EXPERT_MODE_KEY) === "true";
+  updateModeHint();
 }
 
 function saveExpertModePreference() {
   localStorage.setItem(EXPERT_MODE_KEY, isExpertMode() ? "true" : "false");
+  updateModeHint();
+}
+
+function updateModeHint() {
+  modeHint.textContent = isExpertMode()
+    ? "Full dictionary · obscure words allowed"
+    : "Common words only";
 }
 
 function setExpertModeEnabled(enabled) {
@@ -67,9 +77,28 @@ function formatHistory(words) {
 
 function updateGameView(game) {
   document.getElementById("current-word").textContent = game.current;
-  document.getElementById("target-word").textContent = game.end.toUpperCase();
-  document.getElementById("moves-left").textContent = Math.max(game.maxChanges - game.movesUsed, 0);
+  document.getElementById("target-word").textContent = game.end;
+  document.getElementById("moves-left").textContent = Math.max(
+    game.maxChanges - game.movesUsed,
+    0,
+  );
   document.getElementById("history").textContent = formatHistory(game.history);
+}
+
+function shakeMoveForm() {
+  moveForm.classList.remove("shake");
+  void moveForm.offsetWidth;
+  moveForm.classList.add("shake");
+  moveForm.addEventListener(
+    "animationend",
+    () => moveForm.classList.remove("shake"),
+    { once: true },
+  );
+}
+
+function configureMoveInput(game) {
+  moveInput.maxLength = game.end.length;
+  moveInput.placeholder = "_".repeat(game.end.length);
 }
 
 async function api(path, options = {}) {
@@ -94,8 +123,8 @@ async function loadSuggestions() {
     for (const button of suggestionsEl.querySelectorAll(".chip")) {
       const level = button.dataset.level;
       const pair = data[level];
-      const label = level.charAt(0).toUpperCase() + level.slice(1);
-      button.textContent = `${label}: ${pair[0]} → ${pair[1]}`;
+      const pairEl = button.querySelector(".chip-pair");
+      pairEl.textContent = `${pair[0]} → ${pair[1]}`;
       button.onclick = () => {
         document.getElementById("start-input").value = pair[0];
         document.getElementById("end-input").value = pair[1];
@@ -112,16 +141,21 @@ function showStartScreen() {
   activeGame = null;
   startScreen.hidden = false;
   gameScreen.hidden = true;
+  gameScreen.classList.remove("panel--won");
   loadExpertModePreference();
   setExpertModeEnabled(true);
   showError(startError, "");
   showMessage(moveMessage, "");
-  showError(gameResult, "");
+  gameResult.hidden = true;
+  gameResult.textContent = "";
+  gameResult.className = "result";
   solutionWrap.hidden = true;
   solutionPath.textContent = "";
   moveForm.reset();
   newGameBtn.hidden = true;
-  document.getElementById("move-input").disabled = false;
+  moveInput.disabled = false;
+  moveInput.removeAttribute("maxlength");
+  moveInput.placeholder = "";
   moveForm.querySelector("button").disabled = false;
   hintBtn.disabled = false;
   restartBtn.disabled = false;
@@ -133,26 +167,31 @@ function showGameScreen(game) {
   activeGame = game;
   startScreen.hidden = true;
   gameScreen.hidden = false;
+  gameScreen.classList.remove("panel--won");
   setExpertModeEnabled(false);
   expertModeInput.checked = game.expert;
+  updateModeHint();
   showError(startError, "");
   showMessage(moveMessage, "");
-  showError(gameResult, "");
+  gameResult.hidden = true;
+  gameResult.textContent = "";
+  gameResult.className = "result";
   solutionWrap.hidden = true;
   solutionPath.textContent = "";
+  configureMoveInput(game);
   updateGameView(game);
-  document.getElementById("move-input").disabled = false;
+  moveInput.disabled = false;
   moveForm.querySelector("button").disabled = false;
   hintBtn.disabled = false;
   restartBtn.disabled = false;
   giveUpBtn.disabled = false;
   newGameBtn.hidden = true;
-  document.getElementById("move-input").focus();
+  moveInput.focus();
 }
 
 function finishGame(result) {
   const { won, lost } = result;
-  document.getElementById("move-input").disabled = true;
+  moveInput.disabled = true;
   moveForm.querySelector("button").disabled = true;
   hintBtn.disabled = true;
   restartBtn.disabled = true;
@@ -160,9 +199,10 @@ function finishGame(result) {
   newGameBtn.hidden = false;
 
   if (won) {
+    gameScreen.classList.add("panel--won");
     gameResult.hidden = false;
     gameResult.className = "result";
-    gameResult.textContent = "Congratulations! You solved the doublet.";
+    gameResult.textContent = "Solved! You reached the target.";
     if (result.solutionPath?.length) {
       solutionTitle.textContent = "Another valid path";
       solutionWrap.hidden = false;
@@ -175,10 +215,10 @@ function finishGame(result) {
     gameResult.hidden = false;
     gameResult.className = "result lost";
     gameResult.textContent = result.gaveUp
-      ? "You gave up. Here's the shortest path."
+      ? "Here's the shortest path."
       : "No moves left. Better luck next time.";
     if (result.solutionPath?.length) {
-      solutionTitle.textContent = "One valid path";
+      solutionTitle.textContent = "Shortest path";
       solutionWrap.hidden = false;
       solutionPath.textContent = formatHistory(result.solutionPath);
     }
@@ -234,6 +274,7 @@ moveForm.addEventListener("submit", async (event) => {
 
     if (!result.valid) {
       showMessage(moveMessage, result.message);
+      shakeMoveForm();
       return;
     }
 
@@ -246,13 +287,14 @@ moveForm.addEventListener("submit", async (event) => {
     };
     updateGameView(activeGame);
     moveForm.reset();
-    document.getElementById("move-input").focus();
+    moveInput.focus();
 
     if (result.won || result.lost) {
       finishGame(result);
     }
   } catch (error) {
     showMessage(moveMessage, error.message);
+    shakeMoveForm();
   }
 });
 
@@ -286,7 +328,10 @@ restartBtn.addEventListener("click", async () => {
   }
 
   showMessage(moveMessage, "");
-  showError(gameResult, "");
+  gameResult.hidden = true;
+  gameResult.textContent = "";
+  gameResult.className = "result";
+  gameScreen.classList.remove("panel--won");
   solutionWrap.hidden = true;
   solutionPath.textContent = "";
 
