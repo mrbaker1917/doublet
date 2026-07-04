@@ -189,6 +189,49 @@ function showGameScreen(game) {
   moveInput.focus();
 }
 
+let confettiCanon = null;
+
+function getConfettiCanon() {
+  if (typeof confetti !== "function") {
+    return null;
+  }
+  if (!confettiCanon && typeof confetti.create === "function") {
+    confettiCanon = confetti.create(null, {
+      useWorker: false,
+      resize: true,
+      disableForReducedMotion: true,
+    });
+  }
+  return confettiCanon;
+}
+
+function launchConfetti() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return;
+  }
+
+  const fire = getConfettiCanon();
+  if (!fire) {
+    return;
+  }
+
+  const colors = ["#0f6b5c", "#166534", "#b45309", "#fef3c7", "#fffdf8"];
+  const burst = (particleCount, spread, x) => {
+    fire({
+      particleCount,
+      spread,
+      startVelocity: 42,
+      origin: { x, y: 0.55 },
+      colors,
+      zIndex: 1000,
+    });
+  };
+
+  burst(90, 70, 0.5);
+  setTimeout(() => burst(50, 100, 0.25), 180);
+  setTimeout(() => burst(50, 100, 0.75), 180);
+}
+
 function finishGame(result) {
   const { won, lost } = result;
   moveInput.disabled = true;
@@ -208,6 +251,7 @@ function finishGame(result) {
       solutionWrap.hidden = false;
       solutionPath.textContent = formatHistory(result.solutionPath);
     }
+    launchConfetti();
     return;
   }
 

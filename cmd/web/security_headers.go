@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	cspPolicy           = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+	cspPolicy           = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; font-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 	permissionsPolicy   = "camera=(), microphone=(), geolocation=(), payment=()"
 	referrerPolicy      = "strict-origin-when-cross-origin"
 	strictTransportSecs = "max-age=31536000; includeSubDomains"
