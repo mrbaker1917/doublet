@@ -17,11 +17,38 @@ const solutionWrap = document.getElementById("solution-wrap");
 const solutionPath = document.getElementById("solution-path");
 const expertModeInput = document.getElementById("expert-mode");
 const modeHint = document.getElementById("mode-hint");
+const themeToggle = document.getElementById("theme-toggle");
 const moveInput = document.getElementById("move-input");
 
 const EXPERT_MODE_KEY = "doublet-expert-mode";
+const THEME_KEY = "doublet-theme";
 
 let activeGame = null;
+
+function isLightMode() {
+  return document.documentElement.getAttribute("data-theme") === "light";
+}
+
+function updateThemeToggle() {
+  const light = isLightMode();
+  const label = light ? "Switch to dark mode" : "Switch to light mode";
+  themeToggle.setAttribute("aria-label", label);
+  themeToggle.title = label;
+}
+
+function applyTheme(light) {
+  if (light) {
+    document.documentElement.setAttribute("data-theme", "light");
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+  }
+  localStorage.setItem(THEME_KEY, light ? "light" : "dark");
+  updateThemeToggle();
+}
+
+function loadTheme() {
+  applyTheme(localStorage.getItem(THEME_KEY) === "light");
+}
 
 function isExpertMode() {
   return expertModeInput.checked;
@@ -429,5 +456,10 @@ expertModeInput.addEventListener("change", () => {
   loadSuggestions();
 });
 
+themeToggle.addEventListener("click", () => {
+  applyTheme(!isLightMode());
+});
+
+loadTheme();
 loadExpertModePreference();
 loadSuggestions();

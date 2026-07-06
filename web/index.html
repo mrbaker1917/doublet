@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Doublet</title>
+  <script>
+    (function () {
+      if (localStorage.getItem("doublet-theme") === "light") {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="/style.css">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
@@ -15,7 +22,22 @@
           <h1>Doublet</h1>
           <p class="tagline">Change one letter at a time. Every step must be a real word.</p>
         </div>
-        <label class="mode-switch" title="Expert mode allows obscure dictionary words">
+        <div class="header-controls">
+          <button
+            id="theme-toggle"
+            type="button"
+            class="theme-toggle"
+            aria-label="Switch to light mode"
+            title="Switch to light mode"
+          >
+            <svg class="theme-icon theme-icon--bulb" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <path fill="currentColor" d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2zm-1 18h2v1a1 1 0 0 1-2 0v-1z"/>
+            </svg>
+            <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </button>
+          <label class="mode-switch" title="Expert mode allows obscure dictionary words">
           <input id="expert-mode" type="checkbox" class="mode-switch-input">
           <span class="mode-switch-track" aria-hidden="true">
             <span class="mode-switch-thumb"></span>
@@ -23,7 +45,8 @@
             <span class="mode-switch-label mode-switch-label--right">Expert</span>
           </span>
           <span class="mode-switch-sr">Expert mode</span>
-        </label>
+          </label>
+        </div>
       </div>
       <p id="mode-hint" class="mode-hint">Common words only</p>
     </header>
