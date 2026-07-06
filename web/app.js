@@ -254,9 +254,10 @@ function launchConfetti() {
     });
   };
 
-  burst(90, 70, 0.5);
-  setTimeout(() => burst(50, 100, 0.25), 180);
-  setTimeout(() => burst(50, 100, 0.75), 180);
+  burst(110, 70, 0.5);
+  setTimeout(() => burst(80, 100, 0.2), 150);
+  setTimeout(() => burst(80, 100, 0.8), 150);
+  setTimeout(() => burst(80, 120, 0.5), 320);
 }
 
 function finishGame(result) {
