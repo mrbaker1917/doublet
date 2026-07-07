@@ -526,7 +526,9 @@ select:focus {
 
 @media (max-width: 640px) {
   .header-top {
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
   }
 
   .brand h1 {
@@ -535,10 +537,27 @@ select:focus {
 
   .header-controls {
     margin-top: 0;
+    align-self: flex-end;
+    max-width: 100%;
   }
 
   .status-bar,
   .form.inline {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 360px) {
+  .app {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .mode-switch-track {
+    width: 8.75rem;
+  }
+
+  .mode-switch-label {
+    font-size: 0.68rem;
   }
 }
