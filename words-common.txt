@@ -1939,7 +1939,6 @@ boras
 bord
 bore
 bored
-boree
 borel
 borer
 bores
@@ -2714,7 +2713,6 @@ chaum
 chaus
 chave
 chaw
-chawk
 chawl
 chawn
 chaws
@@ -2840,7 +2838,6 @@ choup
 chous
 chout
 chow
-chowk
 chows
 chria
 chris
@@ -2951,17 +2948,14 @@ clava
 clave
 clavi
 claw
-clawk
 claws
 clead
 cleam
 clean
 clear
 cleat
-cleck
 cled
 clee
-cleek
 clef
 clefs
 cleft
@@ -2971,7 +2965,6 @@ clep
 clepe
 clept
 clerk
-cleuk
 cleve
 clew
 clews
@@ -3362,7 +3355,6 @@ cowal
 cowan
 cowed
 cower
-cowk
 cowl
 cowle
 cowls
@@ -3476,7 +3468,6 @@ crowd
 crowl
 crown
 crows
-crpe
 cru
 crub
 cruce
@@ -4190,9 +4181,6 @@ donar
 donas
 donat
 done
-donec
-donee
-donet
 dong
 donga
 dongs
@@ -4206,8 +4194,6 @@ donne
 donor
 dons
 dont
-donum
-donut
 doo
 doob
 dook
@@ -4226,7 +4212,6 @@ doper
 dopes
 dor
 dora
-doree
 dori
 doria
 doric
@@ -6522,7 +6507,6 @@ hapi
 haps
 hapu
 haram
-haras
 harb
 hard
 hards
@@ -9910,7 +9894,6 @@ nonda
 nondo
 none
 nones
-nonet
 nong
 nonic
 noo
@@ -16010,7 +15993,6 @@ weens
 weent
 weep
 weeps
-weer
 wees
 weesh
 weest
