@@ -1,8 +1,8 @@
 ![Status of tests on this REPO](https://github.com/mrbaker1917/doublet/actions/workflows/ci.yml/badge.svg)
 
 # Doublet (in Go)
-NB: currently deployed at [Doublet](https://doublet.fly.dev/).
 A CLI and WEB word game where you transform one word into another by changing one letter at a time. Each intermediate step must also be a valid dictionary word.
+NB: currently deployed at [Doublet](https://doublet.fly.dev/).
 
 ## Rules
 
