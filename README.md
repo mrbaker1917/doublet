@@ -128,4 +128,4 @@ During gameplay:
 - these are now also available as buttons on the web app
 - on web app, also available: `Give up?` button when you are really stuck.
 
-NB: currently deployed at `https://doublet.fly.dev/`
+NB: currently deployed at [Doublet](https://doublet.fly.dev/)
