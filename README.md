@@ -2,7 +2,8 @@
 
 # Doublet (in Go)
 A CLI and WEB word game where you transform one word into another by changing one letter at a time. Each intermediate step must also be a valid dictionary word.
-NB: currently deployed at [Doublet](https://doublet.fly.dev/).
+
+### NB: currently deployed at [Doublet](https://doublet.fly.dev/).
 
 ## Rules
 
