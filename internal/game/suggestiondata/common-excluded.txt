@@ -114,3 +114,7 @@ brere
 brerd
 aland
 alane
+spart 
+spalt
+chass
+press

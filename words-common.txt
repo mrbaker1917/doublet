@@ -13,7 +13,6 @@ aba
 abaca
 abaci
 aback
-aband
 abas
 abase
 abash
@@ -362,8 +361,6 @@ alae
 alai
 alain
 alan
-aland
-alane
 alang
 alani
 alans
@@ -2064,8 +2061,6 @@ bread
 break
 bream
 bred
-brede
-bredi
 bree
 breed
 breek
@@ -2075,8 +2070,6 @@ breme
 bren
 brens
 brent
-brerd
-brere
 brest
 bret
 breth
@@ -2099,7 +2092,6 @@ brier
 bries
 brig
 brigs
-brike
 brill
 brim
 brims
@@ -2703,7 +2695,6 @@ chars
 chart
 chase
 chasm
-chass
 chat
 chati
 chats
@@ -11170,7 +11161,6 @@ preps
 pres
 presa
 prese
-press
 prest
 pret
 preta
@@ -13598,7 +13588,6 @@ spak
 spake
 spald
 spall
-spalt
 spam
 span
 spane
@@ -13611,7 +13600,6 @@ spare
 spark
 sparm
 spars
-spart
 spas
 spasm
 spass
