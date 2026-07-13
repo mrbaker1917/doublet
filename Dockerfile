@@ -16,7 +16,7 @@ WORKDIR /app
 COPY --from=builder /app/server ./server
 COPY web/ ./web/
 COPY words.txt words-common.txt words-large.txt ./
-COPY favico.ico ./web/
+COPY favico.ico /favico.ico
 
 EXPOSE 8080
 
