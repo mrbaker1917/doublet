@@ -13,7 +13,6 @@ aba
 abaca
 abaci
 aback
-aband
 abas
 abase
 abash
@@ -362,12 +361,9 @@ alae
 alai
 alain
 alan
-aland
-alane
 alang
 alani
 alans
-alant
 alap
 alar
 alarm
@@ -2064,8 +2060,6 @@ bread
 break
 bream
 bred
-brede
-bredi
 bree
 breed
 breek
@@ -2075,8 +2069,6 @@ breme
 bren
 brens
 brent
-brerd
-brere
 brest
 bret
 breth
@@ -2099,7 +2091,6 @@ brier
 bries
 brig
 brigs
-brike
 brill
 brim
 brims
@@ -2727,7 +2718,6 @@ cheer
 cheet
 chef
 chefs
-cheir
 cheka
 cheke
 cheki
@@ -2778,7 +2768,6 @@ chimu
 chin
 china
 ching
-chink
 chino
 chins
 chint
@@ -2790,7 +2779,6 @@ chirm
 chiro
 chirp
 chirr
-chirt
 chiru
 chis
 chit
